@@ -4,6 +4,8 @@ A practical and concise guide to commonly used and useful Git commands, structur
 
 ---
 
+<br>
+
 ## 🔰 Getting Started
 
 ### Initialize a New Local Repository
@@ -19,6 +21,8 @@ git clone https://<token>@github.com/username/repo-name.git  # Clones a repo and
 ```
 
 ---
+
+<br>
 
 ## 💻 Local Workflow
 
@@ -73,6 +77,8 @@ git log --oneline      # Compact view of commit history
 
 ---
 
+<br>
+
 ## 🌐 Remote Repositories
 
 ### Add Remote
@@ -102,6 +108,8 @@ git fetch --prune       # Remove remote-tracking branches that no longer exist
 ```
 
 ---
+
+<br>
 
 ## 🌿 Branching & Collaboration
 
@@ -155,6 +163,8 @@ git branch -D feature-xyz       # Force delete
 
 ---
 
+<br>
+
 ## 📦 Stashing Work
 
 ### Stash Changes
@@ -188,6 +198,8 @@ git stash drop stash@{0}  # Delete specific stash by index
 ```
 
 ---
+
+<br>
 
 ## 🔧 Advanced & Useful Commands
 
@@ -242,6 +254,8 @@ git restore .  # Reset all changes in working directory
 
 ---
 
+<br>
+
 ## 🧼 Cleanup
 
 ### Delete Local Branch That No Longer Exists on Remote
@@ -257,3 +271,73 @@ git remote prune origin  # Aggressively clean up remote-tracking branches
 ```
 
 Use with caution — removes all remote-tracking branches no longer on the remote.
+
+---
+
+<br>
+
+## 🔄 `git fetch` vs `git pull`
+
+Understanding the difference between `git fetch` and `git pull` is key to safely managing updates from a remote repository.
+
+| Command     | Description                                                                                                                | Merges Changes? | Safe to Use Without Side Effects? |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------------- |
+| `git fetch` | Downloads commits, branches, tags, etc. from the remote, but **does not** change your working directory or current branch. | ❌ No           | ✅ Yes – read-only                |
+| `git pull`  | **Fetches** changes from the remote **and merges** them into your current branch.                                          | ✅ Yes          | ⚠️ Not always – might auto-merge  |
+
+---
+
+### 🔍 `git fetch` in Detail
+
+```bash
+git fetch origin
+```
+
+- Downloads updates from the remote (e.g., new commits or branches).
+- Local branches stay unchanged until you explicitly merge or rebase.
+
+Inspect remote updates before applying:
+
+```bash
+git log HEAD..origin/main       # View new commits
+git diff HEAD origin/main       # View code differences
+```
+
+Manually integrate changes:
+
+```bash
+git merge origin/main           # Merge into current branch
+git rebase origin/main          # Rebase onto updated branch
+```
+
+---
+
+### 🔍 `git pull` in Detail
+
+```bash
+git pull origin main
+```
+
+- Combines `fetch` and an immediate `merge` (or `rebase`, if configured).
+- Updates your current branch automatically with remote changes.
+
+---
+
+### ✅ When to Use Which?
+
+- **Use `git fetch`** when:
+
+  - You want to preview changes before merging.
+  - You're in the middle of work and don't want automatic merges.
+
+- **Use `git pull`** when:
+  - You’re ready to bring in and integrate the latest changes.
+  - You trust the remote to be in sync and want to avoid manual steps.
+
+---
+
+📝 **Tip**: Set pull to use rebase instead of merge (for cleaner history):
+
+```bash
+git config --global pull.rebase true
+```
