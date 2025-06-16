@@ -1,0 +1,302 @@
+# 🎁 Props in React
+
+**Props**, short for _properties_, are how data is passed **from parent components to child components** in React. If components are JavaScript functions, props are simply the _arguments_ passed into them.
+
+Props make components **customizable** and **reusable**.
+
+---
+
+## 📦 Passing Props into a Component
+
+```jsx
+function Greeting(props) {
+  return <h1>Hello, {props.name}!</h1>;
+}
+
+// Usage
+<Greeting name="Stjepan" />
+<Greeting name="Ava" />
+```
+
+Each call to `<Greeting />` passes a different `name` prop, allowing the same component to render different content.
+
+---
+
+## 🧑‍🔧 Destructuring Props
+
+Instead of accessing `props.name`, you can destructure props directly in the parameter list:
+
+```jsx
+function Greeting({ name }) {
+	return <h1>Hello, {name}!</h1>;
+}
+```
+
+This is a cleaner, more concise syntax — especially with multiple props.
+
+---
+
+## 💡 Props Are Read-Only
+
+Props **cannot be modified** inside the child component — they are immutable from the child’s perspective. Think of them like function arguments: you use them, but you don’t change them.
+
+---
+
+## 🧩 Composing Components with Props
+
+Props can be any data type — strings, numbers, arrays, functions, even components:
+
+```jsx
+function Button({ label, onClick }) {
+	return <button onClick={onClick}>{label}</button>;
+}
+
+function App() {
+	function handleClick() {
+		alert("Button was clicked!");
+	}
+
+	return <Button label="Click me" onClick={handleClick} />;
+}
+```
+
+Here, we’re passing both a string (`label`) and a function (`onClick`) as props — giving full control to the parent.
+
+---
+
+## 🧠 Recap
+
+- Props are inputs to components.
+- They're passed from parent to child via JSX attributes.
+- They’re **read-only** and **help build dynamic UIs**.
+- Destructuring makes code more readable.
+
+> Up next: **State** — how components can track and manage their own data over time.
+
+<br>
+
+# 🧠 State in React
+
+While **props** allow components to receive data from the _outside_, **state** allows components to store and manage data _internally_.
+
+State represents information that can **change over time** — whether based on user input, data from an API, or some internal logic.
+
+---
+
+## 🧰 Declaring State with `useState`
+
+React provides the `useState` Hook to give functional components their own internal memory.
+
+### 🧪 Example: A Simple Counter
+
+```jsx
+import { useState } from "react";
+
+function Counter() {
+	const [count, setCount] = useState(0);
+
+	return (
+		<div>
+			<p>You clicked {count} times.</p>
+			<button onClick={() => setCount(count + 1)}>Click me</button>
+		</div>
+	);
+}
+```
+
+---
+
+## 🔍 What’s Happening Here?
+
+- `useState(0)` creates a **piece of state**, with:
+  - `count`: current value (starts at 0)
+  - `setCount`: function to update it
+- Clicking the button calls `setCount(count + 1)` — causing the component to re-render with the new value.
+
+You can call `useState` **multiple times** in a single component — each call creates a separate slice of state.
+
+---
+
+## 💡 Rules of `useState`
+
+- `useState` **must** be called at the top level of your component — not inside loops, conditions, or nested functions.
+- State updates are **asynchronous**. React may batch them for performance -> batch multiple re-renders (multiple different state changes) into one for optimization. Example:
+
+  ```jsx
+  function Tester() {
+  	const [value, setValue] = useState(0);
+
+  	const updateState = () => {
+  		setValue(1);
+  		setValue(2);
+  		setValue(3);
+  		console.log("After setState calls, value is still:", value); // 0
+  	};
+
+  	return <button onClick={updateState}>Test</button>;
+  }
+  ```
+
+  React will ignore the first two setValue calls and just use the last one — because they happened synchronously in one block. So it batches them and only uses the last one.
+  We can use useEffect hook which runs after component has re-rendered with the updated state to see updated value.
+
+- Setting state causes the component to **re-render** with the new value.
+
+---
+
+## 🧩 Reactivity in Action
+
+```jsx
+function WelcomeBanner() {
+	const [name, setName] = useState("");
+
+	return (
+		<div>
+			<input type="text" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
+			<p>Welcome, {name || "guest"}!</p>
+		</div>
+	);
+}
+```
+
+As the user types into the input, the `name` state updates in real time — and so does the rendered message.
+
+---
+
+## 🧠 Props vs. State (Quick Recap)
+
+| Feature  | Props                        | State                        |
+| -------- | ---------------------------- | ---------------------------- |
+| Source   | Passed in by parent          | Managed within the component |
+| Mutable? | Read-only                    | Mutable via state setters    |
+| Purpose  | Configure component behavior | Track internal data changes  |
+
+> With `props` for input and `state` for interactivity, components can now _react_ (pun intended) to both external and internal data — the real power of React!
+
+<br>
+
+# 🧬 Deeper Dive into State with `useState`
+
+So far, we’ve seen how `useState` handles basic values like numbers or strings. But real-world applications often involve **objects**, **arrays**, and **more nuanced patterns**. Let’s explore them!
+
+---
+
+## 📦 Storing Objects in State
+
+You can store entire objects as state values — but updates must preserve the rest of the object to avoid overwriting it.
+
+```jsx
+const [user, setUser] = useState({ name: "Stjepan", age: 30 });
+// Updater (callback) form is recommended for updating state based on previous state
+function updateName(newName) {
+	setUser((prevUser) => ({
+		...prevUser,
+		name: newName,
+	}));
+}
+```
+
+#### ✅ Why use the callback (updater) form?
+
+It guarantees you're working with the **latest**, most up-to-date state, even when updates are batched or queued.
+
+#### ❌ Avoid this (non-callback form):
+
+```jsx
+function updateName(newName) {
+	const updatedUser = { ...user, name: newName }; // BAD: This captures the current value of `user` at the time this function runs.
+	setUser(updatedUser);
+}
+```
+
+⚠️ Why? If multiple updates happen in a row (queued), they may overwrite each other
+because they all use the same (possibly stale) `user` value.
+
+Imagine this (when multiple updates happen in quick succession):
+
+```js
+function updateNameAndAge() {
+	updateName("Ana");
+	updateAge(31);
+}
+
+function updateName(newName) {
+	setUser({ ...user, name: newName }); // ❌ user is stale here
+}
+
+function updateAge(newAge) {
+	setUser({ ...user, age: newAge }); // ❌ same issue here
+}
+```
+
+Each `setUser(...)` call is based on the **same old `user` object** — so one of the updates will **overwrite** the other. For example:
+
+- First call sets: `{ name: "Ana", age: 30 }`
+- Second call sets: `{ name: "Stjepan", age: 31 }`
+
+❗ **Result:** Only one update "wins", the other is lost. 😱
+
+---
+
+## 📋 Storing Arrays in State
+
+Use `useState` to manage lists, like a to-do app:
+
+```jsx
+const [todos, setTodos] = useState(["Buy milk", "Walk dog"]);
+
+function addTodo(newTodo) {
+	setTodos((prevTodos) => [...prevTodos, newTodo]);
+}
+```
+
+This creates a **new array** instead of mutating the old one — an important rule when using React state: **immutability matters** for detecting changes.
+
+---
+
+## ♻️ Updating Items in an Array
+
+```jsx
+function toggleComplete(index) {
+	setTodos((prevTodos) => prevTodos.map((todo, i) => (i === index ? `✅ ${todo}` : todo)));
+}
+```
+
+You use `map` to create a new array, applying a change only to the item at the given index.
+
+---
+
+## 🧠 Derived State vs. Real State
+
+**Derived state** means computing a value during rendering rather than storing it explicitly.
+
+```jsx
+function CartSummary({ items }) {
+	const total = items.reduce((sum, item) => sum + item.price, 0);
+	return <p>Total: ${total}</p>;
+}
+```
+
+You **don’t need** to store `total` in state — it’s derived from `items`.
+
+### ✅ Tip:
+
+Avoid duplicating state if it can be calculated from props or other state. This reduces bugs and ensures consistency.
+
+---
+
+## 🧪 Initial State from Props
+
+You can initialize state from props — just be careful not to _sync_ them unless you handle updates explicitly:
+
+```jsx
+function Profile({ defaultName }) {
+	const [name, setName] = useState(defaultName);
+
+	return <input value={name} onChange={(e) => setName(e.target.value)} />;
+}
+```
+
+Once set, `name` becomes independent from `defaultName`.
+
+> Coming up next: **event handling** — wiring up user interactions to update state or trigger effects!
