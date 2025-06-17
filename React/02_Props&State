@@ -120,6 +120,7 @@ You can call `useState` **multiple times** in a single component — each call c
 ## 💡 Rules of `useState`
 
 - `useState` **must** be called at the top level of your component — not inside loops, conditions, or nested functions.
+- Setting state causes the component to **re-render** with the new value.
 - State updates are **asynchronous**. React may batch them for performance -> batch multiple re-renders (multiple different state changes) into one for optimization. Example:
 
   ```jsx
@@ -139,8 +140,6 @@ You can call `useState` **multiple times** in a single component — each call c
 
   React will ignore the first two setValue calls and just use the last one — because they happened synchronously in one block. So it batches them and only uses the last one.
   We can use useEffect hook which runs after component has re-rendered with the updated state to see updated value.
-
-- Setting state causes the component to **re-render** with the new value.
 
 ---
 
@@ -299,4 +298,102 @@ function Profile({ defaultName }) {
 
 Once set, `name` becomes independent from `defaultName`.
 
-> Coming up next: **event handling** — wiring up user interactions to update state or trigger effects!
+<br>
+
+# 🧩 Custom Hooks and Lifting State Up
+
+---
+
+## 🛠️ Custom Hooks: Reusing Stateful Logic
+
+Hooks like `useState` and `useEffect` are built-in, but **you can make your own hooks** to share stateful logic between components.
+
+### 🔹 When to Use a Custom Hook
+
+- If several components need to use the same piece of logic (e.g., fetching data, managing forms, handling timers, etc.), a custom hook is perfect.
+  > Why? Hooks encapsulate logic, not UI. This keeps your components DRY and readable. <br>
+      Example use cases: useForm(), useAuth(), useFetch(), useDebounce(), etc.
+- If a component becomes bloated with complex useEffect, useState, or business logic, move the logic into a custom hook.
+  > Result: More readable component + isolated logic = better maintainability.
+- Custom hooks can be unit tested independently of UI.
+  > This is harder to do with HOCs or render props, where logic and rendering are more tightly coupled.
+
+### 🔧 Example: useWindowWidth
+
+```jsx
+import { useState, useEffect } from "react";
+
+function useWindowWidth() {
+	const [width, setWidth] = useState(window.innerWidth);
+
+	useEffect(() => {
+		function handleResize() {
+			setWidth(window.innerWidth);
+		}
+
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	return width;
+}
+```
+
+Now you can reuse this in any component:
+
+```jsx
+function Banner() {
+	const width = useWindowWidth();
+	return <p>Window width: {width}px</p>;
+}
+```
+
+### ✅ Naming Convention
+
+Custom hooks **must start with `use`**, so React knows they're hooks and can apply rules correctly.
+
+---
+
+## 🔝 Lifting State Up: Sharing Between Siblings
+
+Sometimes, **two or more components need access to the same state**. Instead of duplicating it, you “lift” the state to their **common parent**.
+
+### 🎯 Example
+
+```jsx
+function Parent() {
+	const [count, setCount] = useState(0);
+
+	return (
+		<div>
+			<Display count={count} />
+			<IncrementButton onIncrement={() => setCount(count + 1)} />
+		</div>
+	);
+}
+
+function Display({ count }) {
+	return <p>Count: {count}</p>;
+}
+
+function IncrementButton({ onIncrement }) {
+	return <button onClick={onIncrement}>+1</button>;
+}
+```
+
+- `count` lives in `Parent`
+- It's passed **down** to `Display` and `IncrementButton` as props
+- `Display` shows the value; `IncrementButton` updates it
+
+This avoids conflicts, duplication, or sync issues between sibling components.
+
+---
+
+## 🧠 Summary
+
+| Pattern      | Purpose                               |
+| ------------ | ------------------------------------- |
+| Custom Hook  | Reuse logic across components         |
+| Lifted State | Share state across sibling components |
+
+> With custom hooks, logic becomes portable; with lifted state, data becomes shared. Together, they help React scale beautifully.
