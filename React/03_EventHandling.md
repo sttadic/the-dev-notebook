@@ -113,3 +113,87 @@ function Form() {
 - Prevent default browser behaviors explicitly in event handlers.
 
 > Up next: handling **forms and controlled components** — how user input drives state updates and interactivity.
+
+<br>
+
+# 📝 Controlled Components and Forms
+
+In React, inputs don't manage their own state like in plain HTML. Instead, we keep them in sync with **component state** — this pattern is known as a **controlled component**.
+
+---
+
+## 🎛️ What Is a Controlled Component?
+
+A controlled component is a form element (like `<input>` or `<textarea>`) whose value is **driven by React state**.
+
+### 🔹 Example: Controlled Text Input
+
+```jsx
+function NameForm() {
+	const [name, setName] = useState("");
+
+	return (
+		<div>
+			<label>
+				Name:
+				<input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+			</label>
+			<p>Hello, {name || "friend"}!</p>
+		</div>
+	);
+}
+```
+
+### ⚙️ Key Parts:
+
+- `value={name}` binds the input’s value to React state.
+- `onChange={...}` updates the state whenever the user types.
+
+---
+
+## 🧪 Controlled Form Example
+
+```jsx
+function SignupForm() {
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+
+	function handleSubmit(e) {
+		e.preventDefault();
+		console.log("Email:", email);
+		console.log("Password:", password);
+	}
+
+	return (
+		<form onSubmit={handleSubmit}>
+			<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+			<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+			<button type="submit">Sign up</button>
+		</form>
+	);
+}
+```
+
+All input values are controlled via state. The form won’t submit unless you call `e.preventDefault()` and manage what happens manually.
+
+---
+
+## 🧠 Benefits of Controlled Forms
+
+- Instant access to user input (no need to query the DOM)
+- Real-time validation and formatting
+- Ensures **single source of truth** for input state
+
+---
+
+## 🎮 When to Use Uncontrolled Inputs?
+
+Uncontrolled components (using `ref`) are useful when:
+
+- You don’t need to validate or manipulate input during typing
+- You’re integrating with non-React libraries
+- You need very simple input without rerenders
+
+But for most React workflows — **controlled inputs are the standard**.
+
+> Up next: how to manage multiple form fields, validate inputs, and maybe explore checkboxes, radios, selects and textareas — or we can move on to the next React topic if you're happy with event handling!
