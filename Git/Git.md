@@ -341,3 +341,19 @@ git pull origin main
 ```bash
 git config --global pull.rebase true
 ```
+
+<br>
+
+## 🌲 Git Worktree – Multi-Working Directory Guide
+
+`git worktree` allows you to manage multiple working directories from a single Git repository, ideal for working on multiple branches simultaneously, comparing code, or parallel development.
+
+### 🔧 Basic Commands
+
+```bash
+git worktree list                                # List all active worktrees
+git worktree add ../dir-name branch-name         # Add a new worktree with specified branch
+git worktree add ../dir-name -b new-branch       # Create and switch to a new branch in worktree
+git worktree remove ../dir-name                  # Remove a worktree safely
+git worktree prune                               # Clean up references to deleted worktrees
+```
