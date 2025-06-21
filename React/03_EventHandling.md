@@ -444,3 +444,114 @@ Super concise — no `useState` or manual handlers needed!
 | Third-party libraries    | Large forms, validation, performance       |
 
 > Master these techniques and you’ll be able to build anything from login forms to survey builders to fully dynamic wizards.
+
+<br>
+
+# 🧩 More Useful Form Examples
+
+---
+
+## 🔘 8. Radio Buttons
+
+Radios are used to choose **one option from a set**. All radios in a group must share the same `name` attribute.
+
+```jsx
+function ColorPicker() {
+	const [color, setColor] = useState("red");
+
+	return (
+		<div>
+			<label>
+				<input
+					type="radio"
+					name="color"
+					value="red"
+					checked={color === "red"}
+					onChange={(e) => setColor(e.target.value)}
+				/>
+				Red
+			</label>
+
+			<label>
+				<input
+					type="radio"
+					name="color"
+					value="blue"
+					checked={color === "blue"}
+					onChange={(e) => setColor(e.target.value)}
+				/>
+				Blue
+			</label>
+
+			<p>Selected: {color}</p>
+		</div>
+	);
+}
+```
+
+---
+
+## 📝 9. Textarea Input
+
+Just like `<input>`, but for multi-line text. Controlled the same way.
+
+```jsx
+function BioForm() {
+	const [bio, setBio] = useState("");
+
+	return (
+		<div>
+			<textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself" />
+			<p>{bio.length} characters</p>
+		</div>
+	);
+}
+```
+
+---
+
+## 🔧 10. Form Reset (Clear All Fields)
+
+You can reset form state to defaults manually:
+
+```jsx
+function ResettableForm() {
+	const initial = { name: "", email: "" };
+	const [data, setData] = useState(initial);
+
+	function handleChange(e) {
+		const { name, value } = e.target;
+		setData((d) => ({ ...d, [name]: value }));
+	}
+
+	function resetForm() {
+		setData(initial);
+	}
+
+	return (
+		<form>
+			<input name="name" value={data.name} onChange={handleChange} placeholder="Name" />
+			<input name="email" value={data.email} onChange={handleChange} placeholder="Email" />
+			<button type="button" onClick={resetForm}>
+				Reset
+			</button>
+		</form>
+	);
+}
+```
+
+---
+
+## 🧠 Tip: Disable Submit Until Valid
+
+React makes it easy to disable a button until the form meets your criteria:
+
+```jsx
+<button type="submit" disabled={!email || !password}>
+	Submit
+</button>
+```
+
+---
+
+> At this point, your React forms arsenal includes: dynamic fields, checkboxes, radios, selects, validation, formatting, custom logic, and third-party integrations. Whether you're building a feedback widget or a multi-step survey — you've got the chops.
