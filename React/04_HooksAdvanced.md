@@ -47,7 +47,9 @@ useEffect(() => {
 });
 ```
 
-This effect will run **after every render** — including initial mount and on every update.
+This effect will run **after every render** — including initial mount and on every update because it since it has no dependencies specified (no dependency array). In case of empty dependency array ([]), it runs only once after the initial render. <br>
+This is the default behavior of `useEffect` — it runs _after_ the component renders, allowing you to perform side effects without blocking the UI.<br>
+You can think of it as a **callback** that runs _after_ React has painted the UI.
 
 ---
 
@@ -99,7 +101,35 @@ This is great for:
 - Setting up subscriptions
 - Initializing animations or timers
 
-⚠️ Be careful not to reference unstable values inside — they won’t trigger re-runs if changed.
+⚠️ Be careful not to reference unstable values inside the useEffect if not listed in dependency array — they won’t trigger re-runs if changed. Unstabe values include variables that can change between renders, like props, state, functions declred inside the component, or objects/arrays created inline (e.g. const obj = { a: 1 }) inside the conponent.<br>&nbsp; &nbsp; &nbsp; These are unstable because they can get a new reference or value every time your component re-renders, even if the content appears to be the same.
+
+```jsx
+useEffect(() => {
+	// ❌ Unstable value 'someProp' is used here
+	console.log(someProp);
+}, []); // but it's not in the dependency array!
+```
+
+In the example above, because the dependency array is [], React thinks the effect has no dependencies — so it will not re-run even if someProp changes. This creates a bug: the useEffect uses an outdated value.
+
+#### Correct usage:
+
+- Add unstable values to the dependancy array to ensure the effect re-runs when they change:
+
+```jsx
+useEffect(() => {
+	console.log(someProp);
+}, [someProp]); // Effect will re-run when 'someProp' changes
+```
+
+- Or, if it truly only needs to run once (e.g., fetching something that doesn’t depend on props/state), make sure nothing dynamic is used inside:
+
+```jsx
+useEffect(() => {
+  fetch("/api/data").then(...); // no props or state used — safe
+}, []);
+
+```
 
 ---
 
@@ -761,3 +791,7 @@ function DebouncedSearch() {
 ---
 
 This is a great snapshot of modern React in motion: smart re-renders, timed effects, stable dependencies, and responsive UI behavior (input, timers, remote data, and render control all work together).
+
+```
+
+```
