@@ -110,7 +110,7 @@ useEffect(() => {
 }, []); // but it's not in the dependency array!
 ```
 
-In the example above, because the dependency array is [], React thinks the effect has no dependencies — so it will not re-run even if someProp changes. This creates a bug: the useEffect uses an outdated value.
+In the example above, because the dependency array is [], React thinks the effect has no dependencies — so it will not re-run even if someProp changes. This creates a bug: the useEffect uses an outdated value (printed to the console).
 
 #### Correct usage:
 
