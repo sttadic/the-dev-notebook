@@ -205,3 +205,204 @@ function ContactForm() {
 - Keeps your component code clean and declarative
 
 ---
+
+<br>
+
+# 🧠 useForm – With Blur-Based Validation and Real-Time Feedback
+
+This version extends our form hook to include:
+
+- `touched` tracking per field
+- `handleBlur()` for marking a field as visited
+- Revalidation on blur and input change
+- Cleaner UX: no instant errors on first load
+
+---
+
+## 🔧 Hook: `useFormWithBlurValidation`
+
+```jsx
+import { useState } from "react";
+
+function useForm(initialValues, validate) {
+	const [values, setValues] = useState(initialValues);
+	const [errors, setErrors] = useState({});
+	const [touched, setTouched] = useState({});
+
+	function handleChange(e) {
+		const { name, value } = e.target;
+		setValues((prev) => ({ ...prev, [name]: value }));
+
+		if (touched[name]) {
+			const validationErrors = validate({ ...values, [name]: value });
+			setErrors(validationErrors);
+		}
+	}
+
+	function handleBlur(e) {
+		const { name } = e.target;
+		setTouched((prev) => ({ ...prev, [name]: true }));
+
+		const validationErrors = validate(values);
+		setErrors(validationErrors);
+	}
+
+	function handleSubmit(callback) {
+		return (e) => {
+			e.preventDefault();
+			const validationErrors = validate(values);
+			setErrors(validationErrors);
+			setTouched(
+				Object.keys(values).reduce((acc, key) => {
+					acc[key] = true;
+					return acc;
+				}, {})
+			);
+
+			if (Object.keys(validationErrors).length === 0) {
+				callback(values);
+			}
+		};
+	}
+
+	function resetForm() {
+		setValues(initialValues);
+		setErrors({});
+		setTouched({});
+	}
+
+	return {
+		values,
+		errors,
+		touched,
+		handleChange,
+		handleBlur,
+		handleSubmit,
+		resetForm,
+	};
+}
+```
+
+---
+
+## 📦 Usage Example
+
+```jsx
+function validate(values) {
+	const errors = {};
+	if (!values.name.trim()) errors.name = "Name is required";
+	if (!values.email.includes("@")) errors.email = "Invalid email address";
+	return errors;
+}
+
+function SignupForm() {
+	const { values, errors, touched, handleChange, handleBlur, handleSubmit, resetForm } = useForm(
+		{ name: "", email: "" },
+		validate
+	);
+
+	function onSubmit(data) {
+		console.log("Submitted:", data);
+		resetForm();
+	}
+
+	return (
+		<form onSubmit={handleSubmit(onSubmit)}>
+			<div>
+				<input name="name" placeholder="Name" value={values.name} onChange={handleChange} onBlur={handleBlur} />
+				{touched.name && errors.name && <span style={{ color: "red" }}>{errors.name}</span>}
+			</div>
+
+			<div>
+				<input name="email" placeholder="Email" value={values.email} onChange={handleChange} onBlur={handleBlur} />
+				{touched.email && errors.email && <span style={{ color: "red" }}>{errors.email}</span>}
+			</div>
+
+			<button type="submit">Sign up</button>
+		</form>
+	);
+}
+```
+
+---
+
+## 🧠 Takeaways
+
+| Feature          | Purpose                                   |
+| ---------------- | ----------------------------------------- |
+| `touched` state  | Avoids showing errors until user blurs    |
+| `onBlur` handler | Triggers validation only when appropriate |
+| `validate()`     | Keeps your form logic consistent & clean  |
+
+---
+
+> Want to push further with dynamic field arrays, async validation (e.g. checking username availability), or even Yup integration? We can evolve this into a real form engine whenever you're ready.
+
+<br>
+
+# 💾 useLocalStorage – Persist State Across Sessions
+
+This custom Hook helps you:
+
+- Read from and write to `localStorage`
+- Keep React state synced with the storage
+- Survive page reloads
+
+---
+
+## 🔧 Hook: `useLocalStorage(key, initialValue)`
+
+```jsx
+import { useState, useEffect } from "react";
+
+function useLocalStorage(key, initialValue) {
+	const [value, setValue] = useState(() => {
+		const stored = localStorage.getItem(key);
+		return stored !== null ? JSON.parse(stored) : initialValue;
+	});
+
+	useEffect(() => {
+		localStorage.setItem(key, JSON.stringify(value));
+	}, [key, value]);
+
+	return [value, setValue];
+}
+```
+
+- Reads from localStorage on initial render
+- Writes to localStorage when the `value` changes
+- Uses `JSON.stringify` / `JSON.parse` to support objects and arrays
+
+---
+
+## 📦 Usage Example: Persisted Dark Mode Toggle
+
+```jsx
+function DarkModeToggle() {
+	const [isDark, setIsDark] = useLocalStorage("darkMode", false);
+
+	return <button onClick={() => setIsDark((prev) => !prev)}>{isDark ? "🌙 Dark Mode" : "☀️ Light Mode"}</button>;
+}
+```
+
+Even after refreshing the page, the dark mode preference is saved!
+
+---
+
+## 🧠 Pro Tips
+
+- Works for strings, booleans, arrays, or objects
+- Good for storing user preferences, last visited page, etc.
+- You can wrap it further with a custom hook like `useDarkMode` or `useAuthStorage`
+
+---
+
+<br>
+
+### Custom Hooks Recap
+
+Custom Hooks are a powerful way to encapsulate and reuse logic in React applications. They allow you to:
+
+- Create clean, reusable abstractions
+- Manage complex stateful logic outside of components
+- Enhance testability and maintainability
