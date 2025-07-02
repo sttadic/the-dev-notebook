@@ -1,0 +1,187 @@
+# 03_InstallationAndWorkflow.md
+
+## 🛠️ Installing Docker
+
+Docker can be installed on **Windows**, **macOS**, and **Linux**. The easiest way to get started is with **Docker Desktop**, which bundles everything you need.
+
+### 🔹 Windows & macOS
+
+1. Visit the [Docker Desktop download page](https://www.docker.com/products/docker-desktop/).
+2. Download the installer for your OS.
+3. Run the installer and follow the prompts.
+4. After installation, verify with:
+   ```bash
+   docker --version
+   ```
+
+> **Note**: On Windows, Docker Desktop uses **WSL 2** (Windows Subsystem for Linux) for better performance. Make sure WSL 2 is enabled.
+
+### 🔸 Linux (Ubuntu example)
+
+```bash
+sudo apt-get update
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+    sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
+
+Verify installation:
+
+```bash
+docker --version
+```
+
+---
+
+<br>
+
+## 🔄 Docker Development Workflow
+
+Here’s a typical container-based development cycle:
+
+### 1. **Write Code**
+
+Develop your app in your preferred language and framework. You can do this outside or inside a container.
+
+### 2. **Create a Dockerfile**
+
+A **Dockerfile** is a plain text file that contains a set of instructions for building a Docker image. It defines everything needed to set up the environment for your application — including the base image, dependencies, configuration files, and the command to run the app.
+
+Think of it as a recipe for creating a self-contained, portable container that can run your application consistently across different environments.
+
+Example:
+
+```Dockerfile
+FROM node:18
+WORKDIR /app
+COPY . .
+RUN npm install
+CMD ["npm", "start"]
+```
+
+### 3. **Build the Image**
+
+```bash
+docker build -t my-app .
+```
+
+A **Docker image** is a lightweight, standalone, and executable package that includes everything needed to run a piece of software: the code (app files), runtime environment (e.g. Node), libraries, environment variables, and configuration files.
+
+It’s built from a `Dockerfile`, and once created, it becomes an immutable blueprint for containers. You can think of a Docker image as a _snapshot_ of your application and its environment.
+
+Images are used to create containers — the running instances of your app.
+
+### 4. **Run the Container**
+
+```bash
+docker run -p 3000:3000 my-app
+```
+
+A **Docker container** is a runnable instance of a Docker image. It’s an isolated, lightweight environment that contains everything needed to run your application — code, runtime, system tools, libraries, and settings.
+
+Containers run consistently across different machines, making them ideal for development, testing, and deployment.
+
+It’s a **specially isolated** process with its own:
+
+- Filesystem
+- Network stack
+- Process tree
+- Resource limits (CPU, memory, etc.)
+
+It runs locally, directly on the host OS (not inside a VM), using Linux kernel features like:
+
+- **Namespaces** – isolate things like process IDs, users, file systems, and network interfaces.
+- **cgroups (control groups)** – manage and limit resource usage like CPU and RAM.
+
+#### 🧠 Analogy:
+
+> A Docker container is like a **process wrapped in a bubble**, isolated from the rest of the system but still running natively on the host.
+
+#### 🔍 Behind the scenes:
+
+When you run:
+
+```bash
+docker run my-app
+```
+
+Docker is:
+
+1. Creating a new process from your image
+2. Using namespaces and cgroups to isolate it
+3. Assigning it a virtual filesystem and network context
+
+> 🚫 Unlike a VM, there's **no separate guest OS** — containers share the host kernel, which makes them **much faster and lighter**.
+
+### 5. **Iterate**
+
+Make changes to your code, rebuild the image, and restart the container.
+
+### 6. **Push to Registry (Optional)**
+
+```bash
+docker tag my-app username/my-app
+docker push username/my-app
+```
+
+A **Docker registry** is a centralized service where Docker images are stored and shared. It allows you to upload (push) your images and download (pull) them to run containers anywhere.
+
+Popular registries include Docker Hub, GitHub Container Registry, and AWS Elastic Container Registry (ECR).
+
+> Think of it as an **image repository** — similar to how GitHub stores and manages source code repositories.
+
+---
+
+<br>
+
+## 🧪 Tips for Local Development
+
+- Use **bind mounts** to sync local code with the container:
+  ```bash
+  docker run -v $(pwd):/app my-app
+  ```
+- Use **Docker Compose** for multi-container setups.
+- Use **`.dockerignore`** to exclude files from builds.
+
+---
+
+## ✅ Summary
+
+Installing Docker is straightforward, and once set up, it enables a fast, repeatable, and isolated development workflow. Whether you're building a simple app or a complex microservice system, Docker helps you ship with confidence.
+
+## Bonus Tip
+
+### Dockerizing vs. Containerizing
+
+When moving an application into a container using Docker, the correct term depends on context:
+
+- ✅ **Dockerizing**: This is the most widely accepted and specific term when using **Docker**. It refers to the process of:
+
+  - Writing a `Dockerfile`
+  - Building a Docker image
+  - Running the application inside a Docker container
+
+- 🔄 **Containerizing**: This is a broader, more general term. It refers to the concept of packaging an application and its dependencies into a container using _any_ containerization technology (e.g., Docker, Podman, containerd, etc.).
+
+#### Summary:
+
+- Use **Dockerizing the app** when you're specifically using Docker. This refers specifically to the process of creating a Docker image of your application — that is, packaging your app and all its dependencies in a Docker container..
+- Use **Containerizing the app** when speaking more generally or using alternative technologies.
+
+> 💡 In most modern DevOps conversations, "Dockerizing" is preferred when Docker is the container platform in use.
