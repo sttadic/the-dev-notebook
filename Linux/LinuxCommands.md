@@ -5,7 +5,7 @@
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
 - [🔍 Searching for Text in Files](#-searching-for-text-in-files)
-- [🗂️ Finding Files and Directories](#-finding-files-and-directories)
+- [🗂️ Finding Files and Directories](#%EF%B8%8F-finding-files-and-directories)
 - [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
 
 ## 🧰 Basic Linux Commands
