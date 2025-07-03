@@ -55,7 +55,7 @@ docker run -p 3000:3000 physio-log-frontend:latest
 docker ps
 ```
 
-- Lists all currently running containers
+- Lists all currently running containers (use `docker ps -a` to see all containers, including stopped ones)
 
 ---
 
@@ -135,12 +135,13 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ### 10. Helpful Docker Commands
 
-| Command                               | Purpose                             |
-| ------------------------------------- | ----------------------------------- |
-| `docker images`                       | List all downloaded images          |
-| `docker logs <container>`             | View logs from running container    |
-| `docker exec -it <container> /bin/sh` | Open shell inside running container |
-| `docker system prune`                 | Clean up unused images/containers   |
+| Command                               | Purpose                                           |
+| ------------------------------------- | ------------------------------------------------- |
+| `docker images`                       | List all downloaded images                        |
+| `docker logs <container>`             | View logs from running container                  |
+| `docker exec -it <container> /bin/sh` | Open shell inside running container               |
+| `docker system prune`                 | Clean up unused images/containers                 |
+| `docker run -it <image>`              | Run container interactively (e.g. running ubuntu) |
 
 ---
 
