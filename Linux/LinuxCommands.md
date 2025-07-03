@@ -4,7 +4,8 @@
 - [📁 File and Directory Management](#-file-and-directory-management)
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
-- [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes--connecting-commands-together)
+- [🔍 Searching for Text in Files](#-searching-for-text-in-files)
+- [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
 
 ## 🧰 Basic Linux Commands
 
@@ -466,6 +467,134 @@ Redirection allows you to control where input comes from and where output goes �
   ```
 
 > 💡 Tip: Redirection is especially useful in scripts, cron jobs, and when logging output or suppressing noise.
+
+<br>
+
+## 🔍 Searching for Text in Files
+
+Linux provides powerful tools to search for text within files and directories. The most common and versatile tool is `grep`, but others like `find`, `awk`, and `sed` also play a role in more advanced scenarios.
+
+---
+
+### 📌 `grep` – Global Regular Expression Print
+
+`grep` searches for lines in files that match a given pattern.
+
+#### 🔹 Basic Usage
+
+```bash
+grep "pattern" filename
+```
+
+- Searches for `"pattern"` in `filename` and prints matching lines.
+
+#### 🔹 Case-Insensitive Search
+
+```bash
+grep -i "pattern" filename
+```
+
+#### 🔹 Show Line Numbers
+
+```bash
+grep -n "pattern" filename
+```
+
+#### 🔹 Match Whole Words Only
+
+```bash
+grep -w "word" filename
+```
+
+#### 🔹 Invert Match (Show Non-Matching Lines)
+
+```bash
+grep -v "pattern" filename
+```
+
+#### 🔹 Recursive Search in Directories
+
+```bash
+grep -r "pattern" /path/to/dir
+```
+
+#### 🔹 Show Only Matching Text
+
+```bash
+grep -o "pattern" filename
+```
+
+#### 🔹 Count Matching Lines
+
+```bash
+grep -c "pattern" filename
+```
+
+---
+
+### 🧠 Regular Expressions with `grep`
+
+- `.` : Any single character
+- `*` : Zero or more of the previous character
+- `^` : Start of line
+- `$` : End of line
+- `[]` : Character class
+- `\b` : Word boundary (with `-P` for Perl regex)
+
+Example:
+
+```bash
+grep -E "^Error.*[0-9]{3}$" logfile.txt
+```
+
+---
+
+### 🧾 Contextual Search
+
+- `-A N` : Show N lines **after** match
+- `-B N` : Show N lines **before** match
+- `-C N` : Show N lines **before and after**
+
+Example:
+
+```bash
+grep -C 2 "timeout" config.yaml
+```
+
+---
+
+### 📁 Search Multiple Files
+
+```bash
+grep "pattern" file1.txt file2.txt
+grep "pattern" *.log
+```
+
+---
+
+### 🔍 Combine with `find` for Advanced Search
+
+```bash
+find /var/log -name "*.log" -exec grep "error" {} +
+```
+
+- Searches for `"error"` in all `.log` files under `/var/log`.
+
+---
+
+### ⚡ Bonus: `ripgrep` (`rg`) – Fast Recursive Search
+
+If installed:
+
+```bash
+rg "pattern"
+```
+
+- Faster than `grep -r`, ignores binary files, respects `.gitignore`.
+
+---
+
+> 💡 Tip: Use `grep -rni` for a case-insensitive recursive search with line numbers — perfect for scanning codebases or logs.
 
 <br>
 
