@@ -5,6 +5,7 @@
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
 - [🔍 Searching for Text in Files](#-searching-for-text-in-files)
+- [🗂️ Finding Files and Directories](#-finding-files-and-directories)
 - [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
 
 ## 🧰 Basic Linux Commands
@@ -595,6 +596,117 @@ rg "pattern"
 ---
 
 > 💡 Tip: Use `grep -rni` for a case-insensitive recursive search with line numbers — perfect for scanning codebases or logs.
+
+> <br>
+
+## 🗂️ Finding Files and Directories
+
+Linux offers powerful tools to locate files and directories based on name, type, size, time, permissions, and more. The most commonly used tools are `find`, `locate`, and `which`.
+
+---
+
+### 🔍 `find` – Search Files and Directories Recursively
+
+`find` is a versatile command that searches through directory trees in real time.
+
+#### 🔹 Basic Syntax
+
+```bash
+find [path] [options] [expression]
+```
+
+#### 🔹 Find by Name
+
+```bash
+find /path/to/search -name "filename.txt"    # Exact match
+find /path/to/search -iname "filename.txt"   # Case-insensitive match
+find /path/to/search -iname "*.jpg"          # All JPG files
+```
+
+#### 🔹 Find by Type
+
+```bash
+find . -type f            # Regular files
+find . -type d            # Directories
+find . -type l            # Symbolic links
+find . -type f -name "s*" > list.txt    # Find files from current directory (and subdirs) starting with 's' and save to list.txt
+```
+
+#### 🔹 Find by Size
+
+```bash
+find . -size +10M         # Larger than 10MB
+find . -size -1k          # Smaller than 1KB
+```
+
+#### 🔹 Find by Modification Time
+
+```bash
+find . -mtime -7          # Modified in last 7 days
+find . -mmin -30          # Modified in last 30 minutes
+```
+
+#### 🔹 Find by Permissions
+
+```bash
+find . -perm 644          # Exact permission
+find . -perm -u+x         # User has execute permission
+```
+
+#### 🔹 Find by Owner or Group
+
+```bash
+find /var/www -user www-data
+find /home -group developers
+```
+
+#### 🔹 Execute Command on Found Files
+
+```bash
+find . -name "*.log" -exec rm {} \;
+find . -type f -exec chmod 644 {} \;
+```
+
+#### 🔹 Delete Files Matching Criteria
+
+```bash
+find . -name "*.tmp" -delete
+```
+
+#### 🔹 Limit Search Depth
+
+```bash
+find . -maxdepth 2 -name "*.conf"
+```
+
+---
+
+### 📁 `locate` – Fast File Search Using a Database
+
+`locate` uses a prebuilt index (updated via `updatedb`) for lightning-fast searches.
+
+#### 🔹 Examples
+
+```bash
+locate filename.txt
+locate "*.pdf"
+```
+
+> ⚠️ May not reflect recent changes unless `sudo updatedb` is run.
+
+---
+
+### 📌 `which` – Find Executable Location in PATH
+
+```bash
+which python3
+```
+
+- Shows the full path of an executable in your `$PATH`.
+
+---
+
+> 💡 Tip: Use `find` for real-time, flexible searches. Use `locate` for speed. Use `which` to find installed commands.
 
 <br>
 
