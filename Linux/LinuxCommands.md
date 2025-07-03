@@ -1,9 +1,6 @@
 ## 📚 Table of Contents
 
 - [🧰 Basic Linux Commands](#-basic-linux-commands)
-- [📦 Package Management with `apt` and `apt-get`](#-package-management-with-apt-and-apt-get)
-- [🧱 Working with `dpkg` – Debian Package Manager](#-working-with-dpkg--debian-package-manager)
-- [📦 Snap & Flatpak – Universal Package Formats](#-snap--flatpak--universal-package-formats)
 - [📁 File and Directory Management](#-file-and-directory-management)
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
