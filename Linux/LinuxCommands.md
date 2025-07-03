@@ -1,3 +1,14 @@
+## 📚 Table of Contents
+
+- [🧰 Basic Linux Commands](#-basic-linux-commands)
+- [📦 Package Management with `apt` and `apt-get`](#-package-management-with-apt-and-apt-get)
+- [🧱 Working with `dpkg` – Debian Package Manager](#-working-with-dpkg--debian-package-manager)
+- [📦 Snap & Flatpak – Universal Package Formats](#-snap--flatpak--universal-package-formats)
+- [📁 File and Directory Management](#-file-and-directory-management)
+- [📝 Viewing and Editing Files](#-viewing-and-editing-files)
+- [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
+- [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes--connecting-commands-together)
+
 ## 🧰 Basic Linux Commands
 
 These are foundational commands every Linux user should know.
@@ -458,3 +469,94 @@ Redirection allows you to control where input comes from and where output goes �
   ```
 
 > 💡 Tip: Redirection is especially useful in scripts, cron jobs, and when logging output or suppressing noise.
+
+<br>
+
+## 🔗 Pipes (`|`) – Connecting Commands Together
+
+A **pipe** in Linux (`|`) allows you to **take the output of one command and use it as the input for another**. This is incredibly powerful for chaining simple tools into complex workflows — without creating temporary files.
+
+---
+
+### 🧠 How It Works
+
+- Every command has:
+
+  - **stdin** (standard input)
+  - **stdout** (standard output)
+  - **stderr** (standard error)
+
+- A pipe connects the **stdout of one command** to the **stdin of the next**:
+
+  ```bash
+  command1 | command2
+  ```
+
+- Think of it like a conveyor belt: `command1` produces data, and `command2` consumes it.
+
+---
+
+### 🔧 Basic Examples
+
+#### Filter files with `grep`
+
+```bash
+ls -l | grep ".txt"
+```
+
+- Lists only `.txt` files from the current directory.
+
+#### Count lines in a file
+
+```bash
+cat file.txt | wc -l
+```
+
+- Counts the number of lines in `file.txt`.
+
+#### View logs with search
+
+```bash
+dmesg | grep -i error
+```
+
+- Shows only lines containing "error" (case-insensitive) from system logs.
+
+---
+
+### 🧪 Multi-Stage Pipelines
+
+You can chain multiple pipes:
+
+```bash
+cat access.log | grep "404" | awk '{print $1}' | sort | uniq -c | sort -nr
+```
+
+- This finds the IPs that caused the most 404 errors in a web server log.
+
+---
+
+### 🧰 Common Commands Used with Pipes
+
+| Command         | Purpose                               |
+| --------------- | ------------------------------------- |
+| `grep`          | Filter lines by pattern               |
+| `awk`           | Extract and format columns            |
+| `cut`           | Cut specific fields                   |
+| `sort`          | Sort lines alphabetically/numerically |
+| `uniq`          | Remove duplicate lines                |
+| `wc`            | Count lines, words, characters        |
+| `tee`           | Output to file **and** screen         |
+| `head` / `tail` | Show first/last lines                 |
+
+---
+
+### 🧼 Best Practices
+
+- Use **quotes** around patterns to avoid shell expansion.
+- Use `xargs` when a command doesn’t accept piped input directly.
+- Break long pipelines into multiple lines using `\` for readability.
+
+---
+
+> 💡 Pipes are unidirectional (left to right) and ephemeral — they exist only while the command runs. They’re one of the most elegant features of Unix philosophy: _“Do one thing well, and combine tools to do more.”_
