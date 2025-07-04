@@ -5,8 +5,9 @@
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
 - [🔍 Searching for Text in Files](#-searching-for-text-in-files)
-- [🗂️ Finding Files and Directories](#%EF%B8%8F-finding-files-and-directories)
+- [🗂️ Finding Files and Directories](#-finding-files-and-directories)
 - [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
+- [🌍 Environment Variables in Linux](#-environment-variables-in-linux)
 
 ## 🧰 Basic Linux Commands
 
@@ -712,6 +713,16 @@ which python3
 
 ## 🔗 Pipes (`|`) – Connecting Commands Together
 
+We can chain commands using `;`, `&&`, or `||`. Examples:
+
+```bash
+mkdir newdir; cd newdir; touch file.txt  # Create a directory, change into it, and create a file
+mkdir newdir && cd newdir && touch file.txt  # Same as above, but only if each command succeeds (since newdir already exists, the rest of the commands will not run)
+mkdir newdir || echo "Directory already exists"  # Create a directory, or print a message if it already exists
+```
+
+But the most powerful way to connect commands is with **pipes** (`|`), which allow you to pass the output of one command directly into another command as input.
+
 A **pipe** in Linux (`|`) allows you to **take the output of one command and use it as the input for another**. This is incredibly powerful for chaining simple tools into complex workflows — without creating temporary files.
 
 ---
@@ -762,6 +773,14 @@ dmesg | grep -i error
 
 ---
 
+#### List files in bin directory and pipe to `less` for scrolling
+
+```bash
+ls /bin | less
+```
+
+- Lists all files in `/bin` and allows you to scroll through them.
+
 ### 🧪 Multi-Stage Pipelines
 
 You can chain multiple pipes:
@@ -798,3 +817,129 @@ cat access.log | grep "404" | awk '{print $1}' | sort | uniq -c | sort -nr
 ---
 
 > 💡 Pipes are unidirectional (left to right) and ephemeral — they exist only while the command runs. They’re one of the most elegant features of Unix philosophy: _“Do one thing well, and combine tools to do more.”_
+
+<br>
+
+## 🌍 Environment Variables in Linux
+
+Environment variables are dynamic values that affect the behavior of processes and the shell. They store configuration settings like user info, system paths, and preferences — and are inherited by child processes.
+Environment variables are crucial for configuring applications, scripts, and the shell itself. They allow you to customize your Linux experience without modifying system files directly.
+
+---
+
+### 📋 Viewing Environment Variables
+
+#### `printenv` – Print Environment Variables. Purpose is to display the values of current environment variables.
+
+```bash
+printenv            # List all environment variables
+printenv PATH       # Show value of environment variable PATH (this coulb be achieved with `echo $PATH` as well)
+```
+
+Note: PATH is a special environment variable that contains a list of directories where the shell looks for executable files.
+
+#### `env` – Show or Run with Custom Environment. Purpose is to display (without arguments) or run a command with a modified environment.
+
+```bash
+env                 # List all environment variables
+env VAR=value cmd   # Run `cmd` with a temporary variable
+```
+
+#### `set` – Show All Shell Variables (incl. functions)
+
+```bash
+set | less          # View all shell + environment variables
+```
+
+Note:<br>
+`Shell` variables are local to the current shell session (e.g. Bash, Zsh) and are not inherited by child processes (by programs of subshells started from this current shell). Often used for temporary settings or script variables (scripting, counters, temporary flags, etc).<br>
+`Environment` variables are global and inherited by child processes (e.g. programs, scripts) started from the current shell. Used for configuration settings, paths, and user preferences (to configure system behavior, e.g.: PATH, HOME, USER, etc). Set using `export` command.
+
+#### `echo` – Display a Variable’s Value
+
+```bash
+echo $HOME
+```
+
+---
+
+### 🧪 Creating and Exporting Variables
+
+#### Shell Variable (Temporary, Local)
+
+```bash
+MY_VAR="hello"
+echo $MY_VAR
+```
+
+#### Export as Environment Variable (Temporary, Global)
+
+```bash
+export MY_VAR="hello"
+```
+
+> 🧠 Only exported variables are inherited by child processes.
+
+---
+
+### 🔁 Temporary Environment for a Command
+
+```bash
+MY_VAR="value" command
+env MY_VAR="value" command
+```
+
+---
+
+### 🧼 Unsetting Variables
+
+```bash
+unset MY_VAR
+```
+
+---
+
+### 🧾 Common Environment Variables
+
+| Variable   | Description                       |
+| ---------- | --------------------------------- |
+| `PATH`     | Directories searched for commands |
+| `HOME`     | User’s home directory             |
+| `USER`     | Current logged-in user            |
+| `SHELL`    | Default shell (e.g., /bin/bash)   |
+| `LANG`     | System language/locale            |
+| `EDITOR`   | Default text editor               |
+| `PWD`      | Current working directory         |
+| `HOSTNAME` | System hostname                   |
+
+---
+
+### 🗂️ Persistent Environment Variables
+
+To make variables persist across sessions and reboots, you can set them in specific files:
+
+#### 🔹 User-Specific (e.g., Bash)
+
+Add to `~/.bashrc`, `~/.bash_profile`, or `~/.profile`:
+
+```bash
+export MY_VAR="persistent value"
+```
+
+Then reload:
+
+```bash
+source ~/.bashrc
+```
+
+#### 🔹 System-Wide
+
+Edit `/etc/environment` (no `export` needed):
+
+```bash
+MY_VAR="system value"
+```
+
+---
+
+> 💡 Tip: Use uppercase names for environment variables by convention. Avoid spaces around `=` when assigning.
