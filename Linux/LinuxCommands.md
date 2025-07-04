@@ -5,10 +5,10 @@
 - [📝 Viewing and Editing Files](#-viewing-and-editing-files)
 - [🔁 Input, Output, and Error Redirection](#-input-output-and-error-redirection)
 - [🔍 Searching for Text in Files](#-searching-for-text-in-files)
-- [🗂️ Finding Files and Directories](#-finding-files-and-directories)
+- [🗂️ Finding Files and Directories](#%EF%B8%8F-finding-files-and-directories)
 - [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
 - [🌍 Environment Variables in Linux](#-environment-variables-in-linux)
-- [⚙️ Process Management in Linux](#-process-management-in-linux)
+- [⚙️ Process Management in Linux](#%EF%B8%8F-process-management-in-linux)
 - [👥 User and Group Management in Linux](#-user-and-group-management-in-linux)
 - [🔐 File Permissions and Ownership in Linux](#-file-permissions-and-ownership-in-linux)
 
