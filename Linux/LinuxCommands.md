@@ -8,6 +8,9 @@
 - [🗂️ Finding Files and Directories](#-finding-files-and-directories)
 - [🔗 Pipes (`|`) – Connecting Commands Together](#-pipes---connecting-commands-together)
 - [🌍 Environment Variables in Linux](#-environment-variables-in-linux)
+- [⚙️ Process Management in Linux](#-process-management-in-linux)
+- [👥 User and Group Management in Linux](#-user-and-group-management-in-linux)
+- [🔐 File Permissions and Ownership in Linux](#-file-permissions-and-ownership-in-linux)
 
 ## 🧰 Basic Linux Commands
 
@@ -943,3 +946,460 @@ MY_VAR="system value"
 ---
 
 > 💡 Tip: Use uppercase names for environment variables by convention. Avoid spaces around `=` when assigning.
+
+<br>
+
+## ⚙️ Process Management in Linux
+
+Processes are running instances of programs. Managing them is essential for monitoring system performance, terminating unresponsive tasks, and controlling resource usage.
+
+---
+
+When you view processes, you typically see a table with the following columns:
+
+- **PID**: Process ID, a unique identifier for each process.
+- **USER**: The user who owns the process.
+- **%CPU**: Percentage of CPU usage by the process.
+- **%MEM**: Percentage of memory usage by the process.
+- **VSZ**: Virtual memory size of the process in kilobytes.
+- **RSS**: Resident Set Size, the non-swapped physical memory used by the process.
+- **TTY**: Type of Terminal - terminal associated with the process (if any). `pts` means pseudo-terminal, which is common for terminal sessions.
+- **STAT**: Process state (e.g., S for sleeping, R for running, Sl for sleeping with threads, S+ for sleeping in the foreground, etc.).
+- **START**: Time when the process started.
+- **TIME**: Total CPU time each process consumed.
+- **COMMAND**: The command that started the process, including any arguments.
+
+### 📊 Viewing Running Processes
+
+#### `ps` – Process Snapshot
+
+- Shows currently running processes.
+- Common usage:
+  ```bash
+  ps aux              # All processes with detailed info
+  ps -ef              # Standard full-format listing
+  ps -u username      # Processes by user
+  ```
+
+#### `top` – Real-Time Process Monitor
+
+- Interactive view of live processes.
+- Press `q` to quit, `k` to kill a process, `h` for help.
+  ```bash
+  top
+  ```
+
+#### `htop` – Enhanced `top` (if installed)
+
+- Colorful, user-friendly interface.
+- Use arrow keys to navigate, `F9` to kill.
+  ```bash
+  htop
+  ```
+
+#### `pidof` – Get PID of a Process
+
+```bash
+pidof firefox
+```
+
+#### `pgrep` – Search for Processes by Name
+
+```bash
+pgrep ssh
+```
+
+---
+
+### 🛑 Controlling Processes
+
+#### `kill` – Terminate a Process by PID
+
+```bash
+kill 1234            # Graceful termination (SIGTERM)
+kill -9 1234         # Force kill (SIGKILL). -9 is a signal that forces termination without cleanup.
+```
+
+#### `killall` – Kill by Process Name
+
+```bash
+killall firefox
+killall -9 vlc
+```
+
+#### `xkill` – Click to Kill a GUI Window (if installed)
+
+```bash
+xkill
+```
+
+---
+
+### 🔁 Foreground & Background Jobs
+
+#### Run in Background
+
+```bash
+sleep 60 &    # Run sleep command in the background (`&` at the end)
+```
+
+#### View Background Jobs
+
+```bash
+jobs
+```
+
+#### Bring Job to Foreground
+
+```bash
+fg %1
+```
+
+#### Send Job to Background
+
+```bash
+bg %1
+```
+
+---
+
+### 🎚️ Process Priorities
+
+#### `nice` – Start with Priority
+
+- Range: `-20` (highest) to `19` (lowest)
+
+```bash
+nice -n 10 myscript.sh
+```
+
+#### `renice` – Change Priority of Running Process
+
+```bash
+renice -n 5 -p 1234
+```
+
+---
+
+### 🌲 Visualizing Process Tree
+
+#### `pstree` – Show Process Hierarchy
+
+```bash
+pstree
+pstree -p            # Show PIDs
+```
+
+---
+
+### 🧼 Miscellaneous
+
+#### `nohup` – Run Process Immune to Hangups
+
+```bash
+nohup longtask.sh &
+```
+
+#### `watch` – Run a Command Repeatedly
+
+```bash
+watch -n 5 df -h
+```
+
+---
+
+> 💡 Tip: Use `top` or `htop` to monitor system load, and `kill` or `renice` to manage misbehaving processes.
+
+<br>
+
+## 👥 User and Group Management in Linux
+
+Linux is a multi-user system, and managing users and groups is essential for controlling access, organizing permissions, and maintaining security.
+
+---
+
+### 👤 User Management
+
+#### `useradd` – Add a New User
+
+```bash
+sudo useradd username
+```
+
+- Common options:
+  - `-m` : Create home directory
+  - `-s /bin/bash` : Set default shell
+  - `-c "Full Name"` : Add comment
+  - `-g groupname` : Set primary group (each user belongs to one primary group - automatically created when new user is created, same name as the username)
+  - `-G group1,group2` : Add to supplementary groups (each user can belong to zero or multiple supplementary groups)
+  - `-u UID` : Set custom user ID
+- Example:
+  ```bash
+  sudo useradd -m -s /bin/bash -c "Stjepan" stjepan
+  ```
+
+#### `passwd` – Set or Change User Password
+
+```bash
+sudo passwd username
+```
+
+#### `usermod` – Modify Existing User
+
+```bash
+sudo usermod -aG groupname username   # Add to group (a option appends user to the group without removing from other groups)
+sudo usermod -s /bin/zsh username     # Change shell
+sudo usermod -d /new/home username    # Change home directory
+```
+
+#### `userdel` – Delete a User
+
+```bash
+sudo userdel username
+sudo userdel -r username   # Also remove home directory
+```
+
+---
+
+### 👪 Group Management
+
+#### `groupadd` – Create a New Group
+
+```bash
+sudo groupadd groupname
+```
+
+#### `groupdel` – Delete a Group
+
+```bash
+sudo groupdel groupname
+```
+
+#### `groupmod` – Modify Group Name or GID
+
+```bash
+sudo groupmod -n newname oldname
+```
+
+#### `gpasswd` – Manage Group Membership
+
+```bash
+sudo gpasswd -a username groupname   # Add user to group
+sudo gpasswd -d username groupname   # Remove user from group
+```
+
+---
+
+### 🔍 Viewing Users and Groups
+
+#### `id` – Show User and Group IDs
+
+```bash
+id username
+```
+
+#### `groups` – Show Groups for a User (primary and supplementary)
+
+```bash
+groups username
+```
+
+#### `getent` – Query System Databases
+
+```bash
+getent passwd username
+getent group groupname
+```
+
+#### `cat /etc/passwd` – List All Users
+
+#### `cut -d: -f1 /etc/passwd` – List Usernames Only (extracts the first field, which is the username)
+
+#### `cat /etc/group` – List All Groups
+
+---
+
+### 🧾 Switching between users
+
+#### Switch to another user without password (if you have sudo privileges)
+
+```bash
+sudo su - username
+```
+
+#### Switch to another user with password
+
+```bash
+su - username
+```
+
+#### Run a single command as anther user without switching shell
+
+```bash
+sudo -u username command
+```
+
+#### Switch to root user
+
+```bash
+su -  # or
+sudo su - # or
+sudo -i
+```
+
+### 🧠 Special Notes
+
+- **Primary group**: Set at user creation; shown in `/etc/passwd`.
+- **Supplementary groups**: Additional groups a user belongs to.
+- **System users**: Typically have UIDs < 1000 and no login shell.
+- **Default files**:
+  - `/etc/passwd` – User account info
+  - `/etc/shadow` – Encrypted passwords
+  - `/etc/group` – Group definitions
+  - `/etc/gshadow` – Group passwords and admin info
+
+---
+
+> 💡 Tip: Use `sudo usermod -aG sudo username` to grant admin privileges on Ubuntu.
+
+<br>
+
+## 🔐 File Permissions and Ownership in Linux
+
+Linux uses a permission and ownership model to control access to files and directories. Every file has an **owner**, a **group**, and a set of **permissions** for each.
+
+---
+
+### 👤 Ownership Basics
+
+Each file or directory has:
+
+- **User (u)** – The owner (creator by default)
+- **Group (g)** – A group of users
+- **Others (o)** – Everyone else
+
+Use `ls -l` to view ownership and permissions:
+
+```bash
+ls -l filename
+```
+
+Example output:
+
+```
+-rw-r--r-- 1 stjepan devs 1234 Jul 4 10:00 report.txt
+```
+
+- Permissions: `rw-` for user (u), `r--` for group (g), `r--` for others (o). Note that the first character indicates the type (`-` for regular file, `d` for directory, `l` for symbolic link).
+- `stjepan` is the owner
+- `devs` is the group
+
+---
+
+### 🔑 Permission Types
+
+| Symbol | Numeric | Meaning                |
+| ------ | ------- | ---------------------- |
+| `---`  | 0       | No permission          |
+| `--x`  | 1       | Execute permission     |
+| `-w-`  | 2       | Write permission       |
+| `-wx`  | 3       | Write + Execute        |
+| `r--`  | 4       | Read permission        |
+| `r-x`  | 5       | Read + Execute         |
+| `rw-`  | 6       | Read + Write           |
+| `rwx`  | 7       | Read + Write + Execute |
+
+Permissions are grouped as:
+
+- **User** (owner)
+- **Group**
+- **Others**
+
+Example: `-rwxr-xr--`
+
+- User: `rwx` (7)
+- Group: `r-x` (5)
+- Others: `r--` (4)<br>
+  --→ Octal: `chmod 754`
+
+---
+
+### 🛠️ Changing Permissions – `chmod`
+
+#### 🔹 Symbolic Mode
+
+```bash
+chmod u+x file.txt     # Add execute for user
+chmod g-w file.txt     # Remove write for group
+chmod o=r file.txt     # Set read-only for others
+chmod og-x *.txt       # Remove execute for group and others for all .txt files
+chmod u=rwx,g=rx,o=r script.sh  # Set specific permissions
+chmod a+x script.sh    # Add execute for all
+```
+
+#### 🔹 Numeric (Octal) Mode
+
+```bash
+chmod 755 script.sh    # rwxr-xr-x
+chmod 644 file.txt     # rw-r--r--
+chmod 700 secret.txt   # rwx------
+```
+
+---
+
+### 👑 Changing Ownership – `chown` and `chgrp`
+
+#### `chown` – Change File Owner
+
+```bash
+sudo chown newuser file.txt
+sudo chown newuser:newgroup file.txt
+```
+
+#### `chgrp` – Change Group Only
+
+```bash
+sudo chgrp devs file.txt
+```
+
+#### Recursive Ownership Change
+
+```bash
+sudo chown -R stjepan:devs /project
+```
+
+---
+
+### 🧪 Viewing Permissions and Ownership
+
+- `ls -l` : Long listing with permissions
+- `stat file.txt` : Detailed metadata
+- `namei -l /path/to/file` : Show permissions along path
+
+---
+
+### 🧠 Special Permissions
+
+| Name       | Symbol        | Description                            |
+| ---------- | ------------- | -------------------------------------- |
+| **SUID**   | `s` on user   | Run as file owner                      |
+| **SGID**   | `s` on group  | Run as group or inherit group          |
+| **Sticky** | `t` on others | Only owner can delete (used in `/tmp`) |
+
+Examples:
+
+```bash
+chmod u+s script.sh     # Set SUID
+chmod g+s shared_dir/   # Set SGID
+chmod +t /tmp           # Set sticky bit
+```
+
+---
+
+> 💡 Tip: Use `chmod -R`, `chown -R`, and `find ... -exec` for bulk permission changes. Always double-check before applying recursively!<br>
+> Example:
+>
+> ```bash
+> find /path/to/dir -type f -exec chmod 644 {} \;  # Change permissions of all files to 644, {} \; means execute the command on each file found
+> find /path/to/dir -type d -exec chmod 755 {} \;  # Change permissions of all directories to 755
+> ```
