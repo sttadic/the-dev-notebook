@@ -1,5 +1,3 @@
-# 03_InstallationAndWorkflow.md
-
 ## 🛠️ Installing Docker
 
 Docker can be installed on **Windows**, **macOS**, and **Linux**. The easiest way to get started is with **Docker Desktop**, which bundles everything you need.
