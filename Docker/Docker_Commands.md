@@ -108,7 +108,7 @@
   **Example:**
 
   ```bash
-  docker exec -it mycontainer /bin/bash
+  docker exec -it mycontainer /bin/bash   # We can also specify the user that runs this command with -u flag, e.g. 'docker exec -it -u root mycontainer /bin/bash'
   ```
 
 ---
@@ -279,6 +279,7 @@
 - `docker-compose build`
 
   Builds or rebuilds services from Dockerfiles.
+  Add `--no-cache` to force a fresh build without cache. Cache is used by default to speed up builds by caching layers while building images from Dockerfiles.
 
 ---
 
