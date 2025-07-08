@@ -100,6 +100,9 @@ git push                 # Push subsequent commits
 git pull  # Fetches and merges remote changes into current branch
 ```
 
+- Scenario: Your local branch has diverged from the remote branch, e.g. you forgot to pull chages from the remote before making local commits. In that case, running `git pull` will result in `non-fast-forward` errors, indicating that your local commits cannot be automatically merged with the remote changes.
+- Solution: Use `git pull --rebase` to reapply your local commits on top of the remote changes, effectively rewriting your commit history to include the latest changes from the remote branch.
+
 ### Fetch Changes (without merge)
 
 ```bash
@@ -153,6 +156,14 @@ git checkout -b feature-xyz origin/feature-xyz   # Legacy
 ```bash
 git merge feature-xyz   # Merge feature-xyz into current branch
 ```
+
+### Rebase Current Branch onto Another
+
+```bash
+git rebase feature-xyz   # Rebase current branch onto feature-xyz
+```
+
+Reasing is useful for keeping a clean commit history, but be cautious if the branch has already been pushed to a shared remote.
 
 ### Delete a Branch
 
