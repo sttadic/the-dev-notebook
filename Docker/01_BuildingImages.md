@@ -226,12 +226,102 @@ This optimizes Docker’s layer caching—ensuring dependencies aren’t reinsta
 - Only copy what you need. Large folders (like test fixtures or image assets) can inflate image size if you’re not careful.
 
 - Run `docker build . --no-cache` occasionally to validate that `.dockerignore` is doing its job (especially before deployment).
-  <br>
+  <br><br>
 
-SIDENOTE: When you run `docker build -t my-app .` Docker builds the image using content of the current directory(.) as the build context. It will copy files accoring to the instructions in the Dockerfile, while respecting the `.dockerignore` file.
+SIDE NOTE: When you run `docker build -t my-app .` Docker builds the image using content of the current directory (" . ") as the build context. It will copy files accoring to the instructions in the Dockerfile, while respecting the `.dockerignore` file.
 
 If you want to see the context that Docker is using for the build, you can run `docker build . --no-cache --progress=plain` to see all files being copied and excluded.
 
 ---
 
-Up next: we’ll look at **running commands inside the build** using `RUN`, chaining commands wisely, and optimizing layers for speed and readability. Let’s keep the build clean and mean!
+Up next: we’ll look at **running commands inside the build** using `RUN`, chaining commands wisely, and optimizing layers for speed and readability.
+
+<br>
+
+## 🛠️ Running Commands with `RUN`
+
+The `RUN` instruction executes commands inside the image **at build time**. It’s commonly used to install packages, configure environments, or compile code. Each `RUN` creates a new image layer, so optimizing its usage is key to keeping images lean and builds fast.
+
+Layer is a fundamental concept in Docker, where each instruction in the Dockerfile creates a new layer in the image. Layers are cached, so if you change a layer, only that layer and subsequent layers need to be rebuilt, which speeds up the build process.
+
+If, for example, for a base image we use `FROM node:18.17.1-alpine3.18`, the first layer will be the base image itself, and then each subsequent `RUN` instruction will create a new layer on top of that base image.
+
+Note that layers are immutable, meaning once created, they cannot be changed. If you need to modify a layer, you must create a new layer on top of it.
+
+Each RUN command will actually run within a Alpine Linux shell (or the shell of the base image), so you can use shell commands, pipes, and environment variables. If we had the following line in Dockerfile: `RUN apt install python3`, and the base image is Alpine Linux, there would be an error since Alpine uses `apk` package manager, not `apt`. So, we need to be careful to use correct commands for the base image we are using.
+
+---
+
+### 🧪 Syntax Options
+
+There are two forms of `RUN`:
+
+- **Shell form** (uses `/bin/sh -c`):
+
+  ```Dockerfile
+  RUN apt-get update && apt-get install -y curl
+  ```
+
+- **Exec form** (no shell, no variable expansion):
+  ```Dockerfile
+  RUN ["apt-get", "install", "-y", "curl"]
+  ```
+
+> ✅ **Best practice**: Use shell form for complex commands with pipes or environment variables. Use exec form for predictable, signal-safe execution.
+
+---
+
+### 🧹 Chaining Commands
+
+To reduce image layers and improve caching, chain related commands:
+
+```Dockerfile
+RUN apt-get update && \
+    apt-get install -y curl git && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+> 🧠 **Why chain?** Each `RUN` creates a new layer. Chaining avoids unnecessary intermediate layers and keeps your image smaller.
+
+---
+
+### 🧼 Clean Up After Yourself
+
+Always remove temporary files and package caches:
+
+```Dockerfile
+RUN apt-get update && \
+    apt-get install -y build-essential && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+This prevents bloated images and reduces security risks.
+
+---
+
+### 🧠 Tips & Best Practices
+
+- Combine `RUN` instructions where possible to reduce layers.
+- Use `--no-install-recommends` with `apt-get` to avoid unnecessary packages:
+  ```Dockerfile
+  RUN apt-get install -y --no-install-recommends curl
+  ```
+- Use `&&` to chain commands, ensuring the build fails if any command fails.
+- Avoid installing tools you don’t need in production (e.g., editors, debuggers).
+- Use multi-stage builds to separate build-time dependencies from runtime (we’ll cover this later).
+
+---
+
+### 🧪 Example: Installing Node.js on Debian
+
+```Dockerfile
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+This example installs Node.js on a Debian-based image, ensuring the package list is updated, Node.js is installed, and temporary files are cleaned up to keep the image size down.
+
+---
+
+> Next up: we’ll explore **setting environment variables** with `ENV` and how to use them effectively across your Dockerfile and containers.
