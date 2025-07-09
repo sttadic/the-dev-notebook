@@ -325,3 +325,201 @@ This example installs Node.js on a Debian-based image, ensuring the package list
 ---
 
 > Next up: we’ll explore **setting environment variables** with `ENV` and how to use them effectively across your Dockerfile and containers.
+
+<br>
+
+## 🌿 Setting Environment Variables with `ENV`
+
+The `ENV` instruction in a Dockerfile defines **environment variables** that persist in the image and are available at **runtime**. These variables are useful for configuration, portability, and separating code from environment-specific values.
+
+---
+
+### 🔧 Syntax
+
+```Dockerfile
+ENV <key>=<value> ...
+```
+
+You can define multiple variables in one line or across multiple lines:
+
+```Dockerfile
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV API_URL=http://api.myapp.com/    # E.g. this could be an API for talking to a backend service
+```
+
+---
+
+### 🧪 Using `ENV` in Practice
+
+```Dockerfile
+FROM node:18
+WORKDIR /app
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PORT=3000
+
+COPY . .
+RUN npm install
+
+EXPOSE $PORT
+CMD ["npm", "start"]
+```
+
+These variables can be accessed in your app like:
+
+- **Node.js**: `console.log(process.env.NODE_ENV)`
+- **Python**: `print(os.environ['PORT'])`
+- **Java**: `System.getenv("PORT")`
+- **Shell**: `echo $PORT` or `printenv PORT`
+
+---
+
+### 🧠 Best Practices
+
+- ✅ **Use `ENV` for runtime configuration** like ports, modes, or feature flags.
+- ❌ **Avoid hardcoding secrets** (e.g., passwords, tokens). Use runtime injection instead.
+- 🧪 **Reference `ENV` values** in later Dockerfile instructions:
+  ```Dockerfile
+  ENV APP_HOME=/usr/src/app
+  WORKDIR $APP_HOME
+  ```
+
+---
+
+### 🔄 Overriding `ENV` at Runtime
+
+You can override `ENV` values when running a container:
+
+```bash
+docker run -e PORT=8080 my-app
+```
+
+Or use an `.env` file:
+
+```env
+PORT=8080
+NODE_ENV=development
+```
+
+```bash
+docker run --env-file .env my-app
+```
+
+---
+
+### 🧬 `ENV` vs `ARG`
+
+| Feature          | `ENV`                        | `ARG`                             |
+| ---------------- | ---------------------------- | --------------------------------- |
+| Scope            | Available at build & runtime | Build-time only                   |
+| Persist in image | ✅ Yes                       | ❌ No                             |
+| Override at run  | ✅ Yes (`-e`, `--env-file`)  | ❌ No                             |
+| Use case         | App config, ports, flags     | Build-time options (e.g. version) |
+
+---
+
+### 🧼 Tips
+
+- Use uppercase names with underscores: `MY_APP_PORT`
+- Group related variables together for clarity (e.g., all database settings, API keys, etc.). Example:
+  ```Dockerfile
+  ENV DB_HOST=db.example.com \
+      DB_PORT=5432 \
+      DB_USER=myuser \
+      DB_PASSWORD=mypassword
+  ```
+- Document expected variables in your README or Dockerfile comments. Example:
+  ```Dockerfile
+  # Environment variables:
+  # - NODE_ENV: Application environment (default: production)
+  # - PORT: Port the app listens on (default: 3000)
+  ```
+
+---
+
+Next up: we’ll explore **exposing ports** with `EXPOSE`, what it really does (and doesn’t do), and how it fits into container networking.
+
+<br>
+
+## 🌐 Exposing Ports with `EXPOSE`
+
+The `EXPOSE` instruction in a Dockerfile is used to **document** which ports the containerized application is expected to listen on at runtime. It’s a signal to users and orchestration tools—not a command that actually publishes the port.
+
+---
+
+### 🔧 Syntax
+
+```Dockerfile
+EXPOSE <port> [<protocol>]
+```
+
+- `<port>`: The internal container port your app listens on.
+- `<protocol>`: Optional. Defaults to `tcp`. You can also specify `udp`.
+
+```Dockerfile
+EXPOSE 80
+EXPOSE 443/tcp
+EXPOSE 514/udp
+```
+
+---
+
+### 🧠 What `EXPOSE` Does (and Doesn’t Do)
+
+| Action                         | `EXPOSE` Does            | `EXPOSE` Doesn’t             |
+| ------------------------------ | ------------------------ | ---------------------------- |
+| Document container ports       | ✅                       |                              |
+| Enable inter-container comms   | ✅ (via Docker networks) |                              |
+| Publish ports to host          |                          | ❌ (use `-p` or `--publish`) |
+| Make app accessible externally |                          | ❌                           |
+
+> 🧪 To actually make a port accessible from your host, use `-p` or `--publish` when running the container:
+>
+> ```bash
+> docker run -p 8080:80 my-app
+> ```
+
+---
+
+### 🧭 Best Practices
+
+- ✅ **Use `EXPOSE` to document intent**: It helps others understand which ports your app uses.
+- ✅ **Use `EXPOSE` with Docker Compose**: Compose can automatically map exposed ports.
+- ❌ **Don’t rely on `EXPOSE` alone**: It won’t make your app reachable from outside the container.
+- ✅ **Use environment variables** for dynamic port configuration:
+  ```Dockerfile
+  ENV APP_PORT=3000
+  EXPOSE $APP_PORT
+  ```
+
+---
+
+### 🧪 Example in Context
+
+```Dockerfile
+FROM node:18
+WORKDIR /app
+
+COPY . .
+RUN npm install
+
+ENV PORT=3000
+EXPOSE $PORT
+
+CMD ["npm", "start"]
+```
+
+Then run:
+
+```bash
+docker build -t my-app .
+docker run -p 8080:3000 my-app
+```
+
+Now your app is accessible at `http://localhost:8080`.
+
+---
+
+Next up: we’ll explore **setting the user context** with `USER`, why it matters for security, and how to avoid running as root inside containers.
