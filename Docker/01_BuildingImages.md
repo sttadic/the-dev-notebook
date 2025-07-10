@@ -127,6 +127,14 @@ If we wanted to run a linux (alpine) shell, we could use `docker run -it my-node
 
 ---
 
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+```
+
+---
+
 Next: we’ll get into **copying files**, using `.dockerignore`, and how build caching works with file operations. Let’s keep layering this image the right way.
 
 <br>
@@ -234,6 +242,16 @@ If you want to see the context that Docker is using for the build, you can run `
 
 ---
 
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+WORKDIR /app
+COPY . .
+```
+
+---
+
 Up next: we’ll look at **running commands inside the build** using `RUN`, chaining commands wisely, and optimizing layers for speed and readability.
 
 <br>
@@ -321,6 +339,15 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 ```
 
 This example installs Node.js on a Debian-based image, ensuring the package list is updated, Node.js is installed, and temporary files are cleaned up to keep the image size down.
+
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+WORKDIR /app
+COPY . .
+RUN npm install
+```
 
 ---
 
@@ -439,6 +466,18 @@ docker run --env-file .env my-app
 
 ---
 
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+WORKDIR /app
+COPY . .
+RUN npm install
+ENV API_URL=http://api.myapp.com/
+```
+
+---
+
 Next up: we’ll explore **exposing ports** with `EXPOSE`, what it really does (and doesn’t do), and how it fits into container networking.
 
 <br>
@@ -522,4 +561,139 @@ Now your app is accessible at `http://localhost:8080`.
 
 ---
 
+---
+
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+WORKDIR /app
+COPY . .
+RUN npm install
+ENV API_URL=http://api.myapp.com/
+EXPOSE 3000
+```
+
 Next up: we’ll explore **setting the user context** with `USER`, why it matters for security, and how to avoid running as root inside containers.
+
+<br>
+
+## 👤 Setting the User Context with `USER`
+
+By default, Docker containers run as **root** (UID 0), which can pose serious security risks. The `USER` instruction lets you specify a **non-root user** to run your application, following the principle of least privilege.
+
+---
+
+### 🔧 Syntax
+
+```Dockerfile
+USER <username>
+USER <UID>
+USER <username>:<groupname>
+USER <UID>:<GID>
+```
+
+---
+
+### 🛡️ Why Use a Non-Root User?
+
+- ✅ Reduces attack surface
+- ✅ Prevents accidental system-level changes
+- ✅ Complies with security policies (e.g., OpenShift blocks root containers)
+- ✅ Improves container isolation
+
+---
+
+### 🧪 Creating a User in the Dockerfile
+
+You can create a dedicated user during the build:
+
+```Dockerfile
+# Create user and group
+`RUN groupadd -g 1001 appgroup && \
+    useradd -m -u 1001 -g appgroup appuser
+
+# Switch to non-root user
+USER appuser
+```
+
+> 🧠 **Tip**: Use numeric UID/GID for consistency across distributions.
+
+---
+
+### 🧼 Setting Permissions
+
+Make sure the user has access to necessary directories:
+
+```Dockerfile
+RUN mkdir /app && chown appuser:appgroup /app
+WORKDIR /app
+USER appuser
+```
+
+---
+
+### 🔄 Switching Users Temporarily
+
+If you need root for privileged operations:
+
+```Dockerfile
+USER root
+RUN apt-get update && apt-get install -y some-package
+USER appuser
+```
+
+> ⚠️ Avoid using `sudo` in Dockerfiles—it’s not recommended and often unsupported.
+
+---
+
+### 🧠 Best Practices
+
+- ✅ Always set a non-root user explicitly
+- ✅ Use `USER` after setting up permissions
+- ✅ Combine with `WORKDIR` to avoid access issues
+- ✅ Avoid hardcoded paths writable only by root
+- ✅ Prefer `/tmp` for temporary data (world-writable)
+
+---
+
+### 🧪 Example: Secure Node.js App
+
+```Dockerfile
+FROM node:18-slim
+
+# Create user
+RUN useradd -m -u 1001 appuser
+
+# Set permissions
+RUN mkdir /app && chown appuser /app
+
+# Switch user and set working directory
+USER appuser    # Following command will run as user "appuser" from now on
+WORKDIR /app
+
+COPY . .
+RUN npm install
+
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+---
+
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+WORKDIR /app
+COPY . .
+RUN npm install
+ENV API_URL=http://api.myapp.com/
+EXPOSE 3000
+RUN addgroup appgroup && adduser -S -G appgroup app    # Alpine Linux specific command is addgroup and adduser (not groupadd and useradd as in Debian/Ubuntu.)
+USER app
+```
+
+---
+
+Next up: we’ll explore **defining entrypoints** with `CMD` and `ENTRYPOINT`, how they differ, and how to use them together for flexible container behavior.
