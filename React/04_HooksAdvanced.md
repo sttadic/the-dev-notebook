@@ -184,6 +184,28 @@ Mounts → fetches → updates state.
 
 ---
 
+### ✅ Data Fetching with Error Handling (using arrow function)
+
+```jsx
+useEffect(() => {
+	const loadData = async () => {
+		try {
+			const res = await fetch("/api/data");
+			if (!res.ok) throw new Error("Network response was not ok"); // Check for HTTP errors (e.g., 404, 500)
+			const data = await res.json();
+			setData(data);
+		} catch (error) {
+			console.error("Fetch error:", error);
+			setError(error);
+		}
+	};
+
+	loadData();
+}, []);
+```
+
+---
+
 ### ✅ Syncing with Local Storage
 
 ```jsx
