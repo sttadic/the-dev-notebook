@@ -944,3 +944,187 @@ FROM node:$NODE_VERSION
 ```
 
 > Note: `ARG` values are not persisted in the final image
+
+### 🧼 Minimize Layers
+
+Each instruction creates a layer. Combine where it makes sense:
+
+```Dockerfile
+RUN apt-get update && \
+    apt-get install -y curl git && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+---
+
+### 🧪 Use CI Build Tools
+
+Many CI systems (like GitHub Actions, GitLab CI) cache Docker layers for smarter incremental builds. Configure your pipeline to leverage these caches.
+
+---
+
+### 📈 Benchmark Your Builds
+
+Use the `--progress=plain --no-cache` flags with `docker build` for better insights:
+
+```bash
+docker build . --progress=plain
+```
+
+---
+
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+RUN addgroup appgroup && adduser -S -G appgroup app
+USER app
+WORKDIR /app
+COPY package*.json .
+RUN npm install
+COPY . .
+ENV API_URL=http://api.myapp.com/
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+```
+
+---
+
+### 🧠 Summary
+
+Speedy Docker builds come down to smart layering, sensible cache usage, and lean final images. Use multi-stage builds for complex apps, keep `.dockerignore` tight, and think like a minimalist.
+
+<br>
+
+## 📦 Managing Docker Images: Lifecycle Operations
+
+Once you've built an image, you're just getting started. Docker images are artifacts that can be **tagged**, **saved**, **shared**, and **removed**. Managing them cleanly ensures efficient use of disk space and smoother deployments.
+
+---
+
+### 🏷️ Tagging Images
+
+Tags help identify and version your images.
+
+```bash
+docker build -t my-app . # this will tag the image as "my-app:latest" (same as the line below)
+docker build -t my-app:latest .
+docker build -t my-app:v1.2.3 .
+```
+
+> ✅ Use semantic versioning for clarity: `v1.2.3`, `dev`, `test`<br>
+> For example, if you have a Node.js application, you might tag it as `my-node-app:v1.0` for the first stable release, and `my-node-app:latest` for the most recent build.
+
+You can tag an existing image:
+
+```bash
+docker tag <image_id or image_name:tag> <image_name:new_tag>
+```
+
+Don't use `latest` as a tag, especially in production. It can lead to confusion about which version is actually running. You can use `latest` for development builds, but always specify a version for production images.
+
+Note that same image can have multiple tags, so you can tag the same image with different versions or names. For example, you can tag the same image as `my-app:latest`, `my-app:v1.0`, and `my-app:dev` at the same time (their IDs will be the same, but they will have different tags).
+
+---
+
+### 🚀 Pushing & Pulling from Registries
+
+By default, Docker uses Docker Hub, but you can use private registries too. <br>
+You can register on Docker Hub, create a repository (similar to a GitHub repository), and push your images there for sharing or deployment. <br>
+
+Make sure you're logged in:
+
+```bash
+docker login
+```
+
+Then push or pull images from your repository:
+
+```bash
+docker push username/my-app:v1.0
+docker pull username/my-app:v1.0
+```
+
+> 🧠 Push only optimized production-ready images to your registry.
+
+---
+
+### 📁 Saving & Loading Images
+
+You can export and import images using tarballs (compressed archives). This is useful for transferring images between systems (machines) or backing them up.
+
+#### Save an image:
+
+```bash
+docker save -o my-app.tar my-app:v1.0
+```
+
+#### Load a saved image:
+
+```bash
+docker load -i my-app.tar
+```
+
+> 🧪 This preserves tags, metadata, and layer structure.
+
+---
+
+### 🗑️ Removing Images
+
+Free up disk space by removing unused or outdated images.
+
+```bash
+docker rmi my-app:v1.0 # or
+docker rmi <image_id> # or
+docker image prune
+```
+
+> ⚠️ Be careful! Removing an image that containers still use will cause errors.
+
+Remove dangling images (a good practice to keep your environment clean). <br>
+Dangling images are those that have no tags (they're not associated with a name like `my-app:latest`), are not referenced by any containers, and are essentially orphaned layers (intermediate images left over from previous builds):
+
+```bash
+docker image prune # Remove dangling images
+docker image prune -f # Force removal without confirmation prompt
+
+```
+
+Or remove all unused images (removes all images not currently used by containers, even if they’re tagged - only use this if you're sure):
+
+```bash
+docker image prune -a
+```
+
+---
+
+### 🔍 Listing & Inspecting
+
+```bash
+docker images        # List images
+docker image inspect my-app:v1.0
+```
+
+> Use inspection to verify metadata, layers, environment variables, and build history.
+
+---
+
+### 🧼 Tips & Best Practices
+
+- ✅ Use meaningful tags—not just `latest` (it can eventually point to an older image).
+- ✅ Remove images you no longer use
+- 🧪 Use pruning in CI jobs to avoid bloated build machines
+- 📈 Monitor disk usage with:
+  ```bash
+  docker system df
+  ```
+
+---
+
+## ✅ Summary
+
+A clean image lifecycle improves development flow, saves storage, and keeps registries organized. With proper tagging, versioning, and housekeeping, you’ll ensure your Docker environment stays lean and maintainable.
+
+---
+
+Next: we’ll move on to **Working with Containers**—how to create, inspect, manage, and clean them effectively.
