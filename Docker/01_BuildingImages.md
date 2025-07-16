@@ -697,3 +697,143 @@ USER app
 ---
 
 Next up: we’ll explore **defining entrypoints** with `CMD` and `ENTRYPOINT`, how they differ, and how to use them together for flexible container behavior.
+
+<br>
+
+## 🧭 Defining Entrypoints with `ENTRYPOINT` and `CMD`
+
+The `ENTRYPOINT` and `CMD` instructions determine **how your container behaves when it starts**. They define the default executable and its arguments, shaping the container’s runtime behavior.
+
+These two commands are different from `RUN`, which executes commands during the build phase, while `ENTRYPOINT` and `CMD` define the command to run when the container starts (runtime instructions). For example, a command that starts a development server: `npm run dev` (defined in dockerfile as `CMD ["npm", "run", "dev"]`), or a command that runs a Python script: `python app.py` (defined in Dockerfile as `ENTRYPOINT ["python", "app.py"]`).
+
+It is possible not to inculde, for example, `npm run dev` in the Dockerfile, but instead to run it directly when starting the container, like this: `docker run my-app npm run dev`. However, it is recommended to use `CMD` or `ENTRYPOINT` to define the default command to run when the container starts, so that you don't have to specify it every time you run the container.
+
+---
+
+### 🧪 Purpose & Differences
+
+| Instruction  | Role                        | Overridable?             | Typical Use       |
+| ------------ | --------------------------- | ------------------------ | ----------------- |
+| `ENTRYPOINT` | Defines the main executable | Only with `--entrypoint` | Fixed behavior    |
+| `CMD`        | Provides default arguments  | ✅ Yes                   | Flexible defaults |
+
+> 🧠 Use `ENTRYPOINT` for containers that should always run a specific command. Use `CMD` to supply default arguments that can be overridden.
+
+Example:
+
+- If we had following instructions in Dockerfile: `CMD ["npm", "run", "dev"]`, the container would run `node npm run dev` by default. If we wanted to override the command, we could run container initially using additional arguments: `docker run my-app npm run test`, which would run `node npm run test` instead, overriding CMD command in Dockerfile.
+- On the other hand, `ENTRYPOINT` can not be overriden (unless we use --entrypont option). So, if we had instructions `ENTRYPOINT ["npm", "run"]` and `CMD ["dev"]`, the container would run `npm run dev` by default, but we could override it with `docker run my-app test`, which would run `npm run test` instead. In this case, `ENTRYPOINT` defines the main command (`npm run`), while `CMD` provides the default argument (`dev`) that can be overridden.
+
+---
+
+### 🔧 Two Syntax Forms of CMD and ENTRYPOINT
+
+#### Shell Form
+
+```Dockerfile
+ENTRYPOINT echo "Hello World"
+CMD echo "Hello World"
+# or from our example:
+CMD npm run dev
+```
+
+- Runs in a separate shell (shell on linux is usually `/bin/sh -c`, while on windows `cmd.exe /S /C`)
+- Allows shell features (e.g., variable expansion)
+- Poor signal handling (not PID 1) - signals may not propagate correctly to the process (not recommended for production)
+
+#### Exec Form (array of strings) - preferred
+
+```Dockerfile
+ENTRYPOINT ["echo", "Hello World"]
+CMD ["--verbose"]
+# or from our example:
+CMD ["npm", "run", "dev"]
+```
+
+- Runs directly as PID 1, no need to spin up a shell
+- Better signal handling
+- Preferred for production containers
+- No shell features (e.g., no variable expansion)
+- More predictable behavior
+- Makes it easier to clean up processes and handle signals correctly
+
+---
+
+### 🧬 Combining `ENTRYPOINT` and `CMD`
+
+```Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY . .
+
+ENTRYPOINT ["python", "app.py"]
+CMD ["--port", "8080"]
+```
+
+- Default command: `python app.py --port 8080`
+- Override CMD: `docker run my-app --port 9090`
+- Override ENTRYPOINT: `docker run --entrypoint /bin/bash my-app`
+
+---
+
+### 🧪 Real-World Example: Wrapper Script
+
+**entrypoint.sh**
+
+```bash
+#!/bin/sh
+until nc -z db 5432; do
+  echo "Waiting for DB..."
+  sleep 2
+done
+exec python app.py "$@"
+```
+
+**Dockerfile**
+
+```Dockerfile
+FROM python:3.12-alpine
+
+WORKDIR /app
+COPY . .
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["--port", "8080"]
+```
+
+> 🧠 `exec` replaces the shell with the Python process, ensuring proper signal handling.
+
+---
+
+### 🧼 Best Practices
+
+- ✅ Use **exec form** for both `ENTRYPOINT` and `CMD`
+- ✅ Keep `ENTRYPOINT` minimal and predictable
+- ✅ Use `CMD` for arguments that users may override
+- ✅ Avoid hardcoding secrets or environment-specific values
+- ✅ Document expected behavior clearly
+
+---
+
+### 📘 **From Mosh's Docker Course**:
+
+```Dockerfile
+FROM node:22.13.1-alpine3.20
+RUN addgroup appgroup && adduser -S -G appgroup app
+USER app
+WORKDIR /app
+COPY . .
+RUN npm install
+ENV API_URL=http://api.myapp.com/
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+```
+
+Notice that we moved `RUN addgroup appgroup && adduser -S -G appgroup app` and `USER app` intstructions to the top of the Dockerfile, so that they are executed before any other instructions. This is a good practice to ensure that the user and group are created before any files are copied or commands are run, which helps avoid permission issues.
+
+---
+
+Next up: we’ll explore **speeding up builds** with caching strategies, multi-stage builds, and layer optimization.

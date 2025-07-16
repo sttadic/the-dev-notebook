@@ -24,6 +24,15 @@
   docker build -t myapp:1.0 .
   ```
 
+  Note:
+
+  - The `.` at the end specifies the current directory as the build context.
+  - The `Dockerfile` should be present in the specified path (current directory in this case).
+  - If no tag is specified (in this case it is `1.0`), the default tag `latest` is used.
+  - If the image already exists, it will be rebuilt unless the `--no-cache` option is used to force a fresh build.
+  - Other common flags include `--build-arg` to pass build-time variables and `--file` to specify a different Dockerfile name.
+  - If we omitt the `-t` flag, the image will be built without a tag, which is not recommended as it makes it harder to manage images.
+
 ---
 
 - `docker images`
