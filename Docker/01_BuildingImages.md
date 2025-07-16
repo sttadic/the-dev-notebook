@@ -837,3 +837,110 @@ Notice that we moved `RUN addgroup appgroup && adduser -S -G appgroup app` and `
 ---
 
 Next up: we’ll explore **speeding up builds** with caching strategies, multi-stage builds, and layer optimization.
+
+<br>
+
+## ⚡ Speeding Up Docker Builds
+
+A well-optimized Docker build saves time, resources, and headaches—especially in CI/CD pipelines or large multi-container projects. Below are strategies for minimizing build time and keeping your images fast, clean, and cache-friendly.
+
+---
+
+### 🚀 Layers and Layer Caching
+
+Docker builds images in layers, and each instruction in a Dockerfile (like FROM, COPY, RUN, etc.) creates a new layer in the resulting image.
+
+Each layer is cached and immutable, meaning that if a layer hasn’t changed, Docker can reuse it — speeding up builds.
+
+Docker's layer caching system stores each layer as a snapshot (build cache), and these are stored persistently on your machine, unless explicitly cleared. For example, if you run `docker build -t my-app .`, Docker will create a new image named `my-app` and store the layers in the build cache. If you run the same command again, Docker will check if any layers have changed and reuse the cached layers where possible, speeding up the build process.
+
+Command in Dockerfile like `RUN npm install` will produce a layer with everything that existed before, plus the installed node_modules, and this is snapshotted and stored. If you change a file that is not related to the `npm install` command, Docker will reuse the cached layer for `npm install`, making the build faster.
+
+Docker build process works like this:
+
+- Checks each instruction in your Dockerfile.
+- Compares it to the cache:
+  - Has it seen this instruction with the exact same context before?
+  - Did the files or directories involved change?
+- If **yes**, it reuses the cached layer.
+- If **no**, it invalidates the cache and rebuilds from that point on.
+
+To check the cache, you can use the `docker history` command to see the layers of an image and their sizes. For example, `docker history my-app` will show you the layers of the `my-app` image, including the size of each layer and when it was created. Note that base instruction like `FROM` might contain multiple layers, depending on the base image and how it was built.
+
+#### ⚠️ Poor caching:
+
+```Dockerfile
+COPY . .
+RUN npm install
+```
+
+If any file changes, even a single line of code is added to any of the files, the `npm install` and all subsequent layers (instructions below it) will have be rebuilt, which can be slow.
+
+> 🧠 Tip: Place commands with frequent changes near the bottom of the Dockerfile.
+
+---
+
+#### 🔄 Good caching example:
+
+```Dockerfile
+COPY package*.json ./
+RUN npm install
+COPY . .
+```
+
+Changes to your code won't invalidate the `npm install` layer thus saving time.<br> So, we are first copying only the `package*.json` files that are needed for installing dependencies, then running `npm install`, and finally copying the rest of the application code. This way, if we change any of the application code files, the `npm install` layer, which is usually time expensive, will not be invalidated, and Docker will reuse the cached layer for `npm install`, speeding up the build process.
+
+### 📦 Multi-Stage Builds
+
+Multi-stage builds let you separate build-time dependencies from runtime, reducing final image size.
+
+```Dockerfile
+# Stage 1: Build
+FROM node:18 as builder
+WORKDIR /app
+COPY . .
+RUN npm install && npm run build
+
+# Stage 2: Runtime
+FROM node:18-slim
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+RUN npm install --production
+CMD ["node", "dist/index.js"]
+```
+
+✅ Benefits:
+
+- Smaller, leaner image
+- No build tools or source files in final image
+
+---
+
+### 📃 `.dockerignore`
+
+Reduce build context size to speed up upload and build times. Keep unnecessary files out of the image.
+
+> Already covered in a previous section, but **crucial for performance**.
+
+---
+
+### ⚙️ Cache External Dependencies
+
+When downloading remote files (e.g., `curl`, `wget`), save them in cached layers to avoid repeated downloads:
+
+```Dockerfile
+RUN curl -O https://example.com/binary && chmod +x binary
+```
+
+---
+
+### 🔧 Build Arguments with `ARG`
+
+Use `ARG` to inject build-time values like versions or flags:
+
+```Dockerfile
+ARG NODE_VERSION=18
+FROM node:$NODE_VERSION
+```
+
+> Note: `ARG` values are not persisted in the final image
