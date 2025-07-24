@@ -743,3 +743,185 @@ As shown in the example, creating a directory for persistent data inside the con
 ---
 
 Next up: we’ll explore **copying files between host and containers**—how to move data in and out of containers efficiently.
+
+<br>
+
+## 📤 Copying Files Between Host and Containers
+
+Docker makes it easy to move files between your host system and running containers using the `docker cp` command. This is especially useful for debugging, injecting temporary configs, or extracting logs—without rebuilding images or restarting containers.
+
+---
+
+### 🔁 Basic Syntax
+
+```bash
+docker cp <source_path> <container_name_or_id>:<destination_path>
+docker cp <container_name_or_id>:<source_path> <destination_path>
+```
+
+- You can copy **from host to container** or **from container to host**
+- Works with both **files** and **directories**
+
+---
+
+### 📥 Copying from Host to Container
+
+```bash
+docker cp ./config.json my_container:/app/config.json
+```
+
+This copies `config.json` from your current directory into `/app/` inside the container.
+
+---
+
+### 📤 Copying from Container to Host
+
+```bash
+docker cp my_container:/app/logs/output.log ./output.log
+```
+
+This pulls `output.log` from the container into your current host directory.
+
+---
+
+### 📁 Copying Entire Directories
+
+```bash
+docker cp ./website/ my_container:/var/www/html/
+docker cp my_container:/var/www/html/ ./website/
+```
+
+> 🧠 Docker will **overwrite existing files** at the destination unless you rename or relocate them.
+
+---
+
+### 🧪 Tips & Limitations
+
+- ✅ Works even if the container is **stopped**
+- ❌ You **cannot copy between two containers** directly
+- ✅ Use `-a` to preserve file attributes:
+  ```bash
+  docker cp -a ./data my_container:/app/data
+  ```
+- ✅ Use `-L` to follow symlinks in the source
+
+---
+
+### 🧼 Best Practices
+
+- ✅ Prefer volumes or bind mounts for persistent or frequent file sharing
+- ✅ Use `docker cp` for **one-off transfers**, debugging, or quick edits
+- ❌ Avoid relying on `docker cp` in production workflows
+- ✅ Document any manual file transfers for reproducibility
+
+---
+
+Next up: we’ll explore **sharing source code with a container** using bind mounts—ideal for live development and syncing changes in real time.
+
+<br>
+
+## 🔗 Sharing Source Code with a Container (Bind Mounts)
+
+When developing locally, it's often useful to share your source code directory with a running container so that changes made on the host are instantly reflected inside the container. This is achieved using **bind mounts**, which link a host directory to a path inside the container.
+
+---
+
+### 📦 What Is a Bind Mount?
+
+A bind mount connects a **specific directory or file on your host** to a **specific location inside the container**. Unlike volumes, bind mounts are ideal for development because they allow **live editing** of code.
+
+---
+
+### 🧪 Basic Syntax
+
+```bash
+docker run -v /path/on/host:/path/in/container <image>
+```
+
+Or using relative path:
+
+```bash
+docker run -v $(pwd):/app my-image
+```
+
+This mounts your current working directory into `/app` inside the container.
+
+---
+
+### 🧬 Example: Node.js Development
+
+```bash
+docker run -it --rm \
+  -v $(pwd):/app \
+  -w /app \
+  node:18 \
+  bash
+```
+
+- `-v $(pwd):/app`: Mounts your source code
+- `-w /app`: Sets working directory
+- `--rm`: Removes container after exit
+- `bash`: Opens interactive shell
+
+Now you can run:
+
+```bash
+npm install
+npm start
+```
+
+And any changes you make to files on your host will be reflected instantly inside the container.
+
+---
+
+### 🧪 Docker Compose Example
+
+```yaml
+services:
+  app:
+    image: node:18
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: npm start
+```
+
+This setup allows you to run your app with `docker compose up` and edit code live.
+
+---
+
+### 🔐 File Permissions
+
+Ensure Docker has access to the host directory. You can set read/write mode:
+
+```bash
+-v ./src:/app:rw   # Read-write
+-v ./src:/app:ro   # Read-only
+```
+
+> 🧠 Use `:ro` for config files or static assets you don’t want modified by the container.
+
+---
+
+### ⚠️ Platform Notes
+
+- On **Windows**, use absolute paths:
+  ```bash
+  docker run -v C:\Users\Stjepan\project:/app my-image
+  ```
+- On **macOS/Linux**, `$(pwd)` works well.
+- Bind mounts may be slower on Windows/macOS due to VM overhead. Consider using volumes or sync tools for large projects.
+
+---
+
+### 🧼 Best Practices
+
+- ✅ Use bind mounts for live development
+- ✅ Avoid mounting sensitive files (use `.dockerignore`)
+- ✅ Use volumes for persistent data (e.g., databases)
+- ✅ Document mount paths in your README or Compose file
+- ❌ Don’t use bind mounts in production unless absolutely necessary
+
+---
+
+Next up: we’ll dive into **Running Multi-Container Applications**—how to orchestrate services using Docker Compose and connect them via networks.
