@@ -865,3 +865,142 @@ At the very end of the file, we need to declare the named volume `vidly` so that
 In `api` service, we are using a custom entrypoint script (`docker-entrypoint.sh` - in the backend directory) to start the Node.js API server. This script can handle any necessary setup before starting the server, such as waiting for the database to be ready or running migrations. The `command` property overrides the default command defined in the frontend Dockerfile, allowing us to run our custom script instead.
 
 In `web-test` service, we are using the `vidly-web` image (which is built from the `web` service --> image name is `vidly-web`) to run tests for the frontend. We are mounting the `frontend` directory to `/app` inside the container, so that we can run tests against the latest code. The command `npm test` will run the tests defined in the `package.json` file of the React app.
+
+<br>
+
+## 🧠 Advanced Concepts in Multi-Container Compose Applications
+
+Before venturing into deployment, it’s wise to internalize the deeper aspects of Docker Compose. These advanced concepts lay the groundwork for resilience, security, maintainability, and local simulation of real-world cloud-native environments.
+
+---
+
+### 🔗 Inter-Service Communication
+
+Docker Compose sets up a default **bridge network** for service discovery by name. Services talk to each other using their Compose-defined names:
+
+```yaml
+app → db:5432
+web → api:3000
+```
+
+You can define custom networks to segment traffic, improve isolation, or connect containers across stacks.
+
+```yaml
+networks:
+  backend:
+    driver: bridge
+
+services:
+  api:
+    networks: [backend]
+  db:
+    networks: [backend]
+```
+
+---
+
+### 📦 Data Persistence & Volumes
+
+Use **named volumes** for persistent data (especially DBs) and **bind mounts** for live development. Volumes can be shared across services and persist across rebuilds.
+
+```yaml
+volumes:
+  data-volume:
+
+services:
+  db:
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+```
+
+Avoid writing data directly to container layers—changes won’t persist once the container dies.
+
+---
+
+### 🔐 Secrets & Configuration
+
+For local dev, `.env` files are convenient:
+
+```
+POSTGRES_PASSWORD=secret
+JWT_SECRET=dev-token
+```
+
+For stronger separation:
+
+- Mount secrets from external files
+- Use `.gitignore` to keep secrets out of source control
+- In production, adopt secret managers (Vault, SOPS, AWS Secrets Manager)
+
+---
+
+### 📊 Observability: Logs & Monitoring
+
+Structure logs for readability:
+
+- Use `docker compose logs -f`
+- Stream app + db logs together during debugging
+- Consider logging drivers (`json-file`, `fluentd`, `syslog`) for custom pipelines
+
+Preview integrations (e.g., ELK stack or Prometheus) even in dev to align with production needs.
+
+---
+
+### 🧪 CI/Testing with Compose
+
+Use Compose to spin up **test environments** locally:
+
+- Combine `db`, `api`, and `test-runner`
+- Simulate external services with mock containers
+- Use `docker compose -f` with specialized files (e.g. `docker-compose.test.yml`)
+
+This mirrors staging conditions and simplifies test automation.
+
+---
+
+### 💣 Resilience and Restart Strategies
+
+To handle crashes or dependency failures:
+
+```yaml
+restart: unless-stopped # This means the container will restart unless explicitly stopped
+```
+
+Use health checks for more advanced lifecycle control:
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost"]
+  interval: 10s
+  retries: 3
+```
+
+Build “wait-for” logic into entrypoints to coordinate slow-start services like databases.
+
+---
+
+### 🧩 Networks: Isolation, DNS, and Structure
+
+Compose makes DNS entries for each service on internal networks. For more control:
+
+- Define multiple networks
+- Use `external: true` to join containers to pre-existing Docker networks
+- Restrict ports to localhost with `127.0.0.1:8080:80` for development safety
+
+---
+
+## ✅ Summary: Compose Mastery Checklist
+
+| Capability            | Technique                                |
+| --------------------- | ---------------------------------------- |
+| Service Communication | Named containers + internal DNS          |
+| Data Persistence      | Volumes (named & bind mounts)            |
+| Secrets & Config      | `.env`, mounts, secret managers          |
+| Logging & Monitoring  | Compose logs, healthchecks, drivers      |
+| Testing Environments  | Compose test files + mock services       |
+| Resilience            | Restart policies, healthchecks, wait-for |
+| Network Design        | Multiple networks + scoped port exposure |
+
+---
+
+You're now equipped with the Compose skills that map directly to cloud-native concepts. These building blocks will serve you well as you head into deployment tooling, service meshes, CI/CD pipelines, and beyond 🌍🛠️
