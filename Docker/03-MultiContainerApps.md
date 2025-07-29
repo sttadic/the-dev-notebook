@@ -819,6 +819,8 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
 
   web-test:
     image: vidly-web

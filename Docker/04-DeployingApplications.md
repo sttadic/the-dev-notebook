@@ -254,7 +254,6 @@ networks:
 
   ```bash
   docker compose -f docker-compose.yml up -d
-
   ```
 
   This command starts your services in detached mode, allowing them to run in the background. -f flag specifies the compose file to use.
@@ -292,6 +291,41 @@ networks:
   ```bash
   docker compose down --volumes
   ```
+
+### 📘 **From Mosh's Docker Course**:
+
+```yaml
+services:
+  web:
+    depends_on:
+      - api
+    build: ./frontend
+    ports:
+      - 80:3000
+    restart: unless-stopped
+
+  api:
+    depends_on:
+      - db
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      DB_URL: mongodb://db/vidly
+    command: ./docker-entrypoint.
+    restart: unless-stopped
+
+  db:
+    image: mongo:4.0-xenial
+    ports:
+      - "27017:27017"
+    volumes:
+      - vidly:/data/db # MongoDB by default uses /data/db for data storage
+    restart: unless-stopped
+
+volumes:
+  vidly:
+```
 
 ---
 
