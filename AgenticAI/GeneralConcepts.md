@@ -207,3 +207,94 @@ VSCode is a popular environment for agentic AI because it offers rich extension 
 - **Switch to Engineer Mode:** Apply focused fixes; keep diffs minimal.
 - **Run tests:** Use `terminal.runCommand`; verify green before merging.
 - **Result:** A rotating AI teammate that adapts role to context (reviewer → teacher → engineer).
+
+<br>
+
+# Agentic AI in VSCode (Best Practices)
+
+## Overview
+
+To get the most out of agentic AI in VSCode, it's essential to design your setup for clarity, safety, and adaptability. These best practices help ensure your AI assistant behaves predictably, supports your workflow, and scales across teams.
+
+---
+
+## Prompt Design
+
+- **Keep prompts modular:** One file per role or task (e.g., `debugging.prompt.md`, `reviewer.prompt.md`).
+- **Use clear directives:** Avoid vague goals like "help me code"; prefer "suggest performance optimizations for React components".
+- **Include fallback behavior:** Define what the AI should do when unsure (e.g., "ask for clarification before making changes").
+
+---
+
+## Instruction Hygiene
+
+- **Separate global vs task-specific rules:** Use workspace config for persistent preferences, and prompt files for temporary modes.
+- **Avoid conflicting instructions:** If you say "optimize for speed" and "optimize for readability", clarify priority.
+- **Version control your config:** Store `config.json` and `.prompts/` in the repo to ensure consistency across machines.
+
+---
+
+## Tool Permissions
+
+- **Apply the Principle of Least Privilege:** Only enable tools needed for the current task.
+- **Audit tool access regularly:** Especially before enabling write/edit/delete capabilities.
+- **Log tool usage:** Some extensions support logging AI actions — use this for traceability.
+
+---
+
+## Role Switching
+
+- **Treat moods as roles:** Switch between Teacher, Reviewer, Engineer depending on the phase of work.
+- **Avoid multitasking roles:** Don’t mix Reviewer and Engineer in one prompt — it leads to inconsistent tone.
+- **Document role behavior:** Include a short description at the top of each prompt file.
+
+---
+
+## Team Collaboration
+
+- **Share prompt libraries:** Use `.prompts/` as a shared resource across the team.
+- **Standardize naming conventions:** e.g., `role.task.prompt.md` → `reviewer.tests.prompt.md`.
+- **Review AI suggestions in PRs:** Encourage teammates to comment on AI-generated code or explanations.
+
+---
+
+## Debugging and Recovery
+
+- **Always ask for root cause first:** In debugging prompts, require the AI to explain the issue before suggesting fixes.
+- **Use rollback notes:** Include instructions like "suggest a revert if confidence is low".
+- **Test before merge:** Never trust AI-generated code without running tests.
+
+---
+
+## Scaling Across Projects
+
+- **Use workspace-specific configs:** Avoid global settings that bleed across unrelated projects.
+- **Create starter templates:** Include `.prompts/`, `config.json`, and tool settings in new repo templates.
+- **Audit MCP connections:** If using external context servers, treat them like dependencies — version, sandbox, and monitor.
+
+---
+
+## Quick Tips
+
+- ✅ Modular prompts = predictable behavior
+- ✅ Least privilege = safer automation
+- ✅ Role clarity = better collaboration
+- ✅ Workspace configs = scalable setup
+
+---
+
+## Common Pitfalls
+
+- ❌ Overloaded prompts with mixed goals
+- ❌ Unrestricted tool access (e.g., `deleteFile`)
+- ❌ No version control for instructions
+- ❌ AI acting outside intended role due to unclear mood
+
+---
+
+## Further Reading
+
+- Agentic AI prompt design patterns
+- VSCode extension security guidelines
+- MCP server auditing checklist
+- AI-assisted code review workflows
